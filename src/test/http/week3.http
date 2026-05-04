@@ -1,0 +1,17 @@
+### 1. Health check
+GET http://localhost:8080/api/health/ping
+
+
+### 2. Vectorize document
+POST http://localhost:8080/api/rag/documents/1/vectorize
+
+
+### 3. Search chunks in one knowledge space
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "How to prevent Redis cache breakdown?",
+  "topK": 5
+}

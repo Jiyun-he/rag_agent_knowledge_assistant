@@ -1,0 +1,86 @@
+@host = http://localhost:8080
+
+### health check
+GET {{host}}/api/health/ping
+
+
+### create space
+POST {{host}}/api/spaces
+Content-Type: application/json
+
+{
+  "name": "backend-team",
+  "description": "Knowledge space for backend team"
+}
+
+
+### list spaces
+GET {{host}}/api/spaces
+
+
+### get space by id
+GET {{host}}/api/spaces/1
+
+
+### update space
+PUT {{host}}/api/spaces/1
+Content-Type: application/json
+
+{
+  "name": "backend-team",
+  "description": "Updated knowledge space for backend team"
+}
+
+
+### create document
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "title": "Spring Boot Service Layer Notes",
+  "content": "The service layer is used to organize business logic. Controllers should not directly call database mappers. In this project, the controller receives HTTP requests and delegates business operations to the service layer. The service layer validates business rules, manages transactions, and coordinates database operations. This design makes the project easier to maintain and easier to explain in interviews. When building a RAG application, documents are stored first, then split into chunks, and later converted into embeddings.",
+  "sourceType": "MANUAL",
+  "sourceUri": "manual-input"
+}
+
+
+### list all documents
+GET {{host}}/api/documents
+
+
+### list documents by space
+GET {{host}}/api/documents?spaceId=1
+
+
+### get document by id
+GET {{host}}/api/documents/1
+
+
+### list document chunks
+GET {{host}}/api/documents/1/chunks
+
+
+### update document
+PUT {{host}}/api/documents/1
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "title": "Updated Spring Boot Service Layer Notes",
+  "content": "The service layer contains business logic and transaction boundaries. In a clean backend project, controllers should be thin and services should be responsible for validation, orchestration, and persistence coordination. In this RAG knowledge assistant project, document content is saved into MySQL and then split into reusable chunks. These chunks will be used later for embedding generation and vector search.",
+  "sourceType": "MANUAL",
+  "sourceUri": "manual-input"
+}
+
+
+### list document chunks after update
+GET {{host}}/api/documents/1/chunks
+
+
+### delete document
+DELETE {{host}}/api/documents/1
+
+
+### try to delete space
+DELETE {{host}}/api/spaces/1
