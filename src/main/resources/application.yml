@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: rag-agent-knowledge-assistant
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rag_agent?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: rag_user
+    password: rag_password
+
+  sql:
+    init:
+      mode: never
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+    vectorstore:
+      qdrant:
+        host: localhost
+        port: 6334
+        collection-name: rag_kb_chunks
+        use-tls: false
+        initialize-schema: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+rag:
+  chunk:
+    max-size: 500
+    overlap-size: 80

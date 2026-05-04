@@ -1,0 +1,10 @@
+### 新增知识文档
+POST http://localhost:8080/api/documents
+Content-Type: application/json
+
+{
+  "title": "研发知识助手项目介绍",
+  "content": "本项目是一个基于 RAG 与轻量 Agent 的企业研发知识助手。",
+  "sourceType": "MANUAL",
+  "sourceUri": "local"
+}
