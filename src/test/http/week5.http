@@ -1,0 +1,37 @@
+### Week 5 - Ask with new session
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "What is the main content of this knowledge base?",
+  "topK": 5
+}
+
+
+### Week 5 - Ask with existing session
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "sessionId": 1,
+  "question": "Can you explain it in more detail?",
+  "topK": 5
+}
+
+
+### Week 5 - List sessions by spaceId
+GET http://localhost:8080/api/qa/history/spaces/1/sessions
+
+
+### Week 5 - List messages by sessionId
+GET http://localhost:8080/api/qa/history/sessions/1/messages
+
+
+### Week 5 - List references by assistant messageId
+GET http://localhost:8080/api/qa/history/messages/2/references
+
+
+### Week 5 - Get full session history
+GET http://localhost:8080/api/qa/history/sessions/1

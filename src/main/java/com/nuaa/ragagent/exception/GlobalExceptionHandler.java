@@ -26,6 +26,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ApiResponse<Void> handleException(Exception e) {
-        return ApiResponse.fail(500, "Internal server error");
+        return ApiResponse.fail(500, "Internal server error" + e.getClass().getSimpleName() + " - " + e.getMessage());
     }
 }

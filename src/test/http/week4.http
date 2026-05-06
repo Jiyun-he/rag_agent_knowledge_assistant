@@ -1,0 +1,19 @@
+### Week 4 - RAG Ask
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "这个知识库主要讲了什么内容？",
+  "topK": 5
+}
+
+### Week 4 - RAG Ask - Specific Question
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "请根据知识库内容说明 RAG 系统的核心流程。",
+  "topK": 5
+}
