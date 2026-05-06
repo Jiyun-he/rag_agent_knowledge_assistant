@@ -19,6 +19,12 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+
+      chat:
+        options:
+          model: gpt-4o-mini
+          temperature: 0.3
+
       embedding:
         options:
           model: text-embedding-3-small

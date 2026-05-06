@@ -113,6 +113,7 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
                                 .eq(KbChunk::getId, chunk.getId())
                                 .set(KbChunk::getEmbeddingStatus, EMBEDDING_FAILED)
                 );
+                e.printStackTrace();
 
                 failedCount++;
             }
@@ -192,7 +193,9 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
     }
 
     private String buildVectorId(Long chunkId) {
-        return "chunk-" + chunkId;
+        return java.util.UUID.nameUUIDFromBytes(
+                ("kb_chunk_" + chunkId).getBytes(java.nio.charset.StandardCharsets.UTF_8)
+        ).toString();
     }
 
     private int normalizeTopK(Integer topK) {
