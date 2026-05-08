@@ -39,3 +39,25 @@ CREATE TABLE IF NOT EXISTS kb_chunk (
     KEY idx_kb_chunk_space_status (space_id, status),
     KEY idx_kb_chunk_embedding_status (embedding_status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Knowledge chunk table';
+
+CREATE TABLE IF NOT EXISTS kb_embedding_task (
+                                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                                 document_id BIGINT NOT NULL,
+                                                 space_id BIGINT NOT NULL,
+                                                 task_type VARCHAR(64) NOT NULL,
+    status TINYINT NOT NULL DEFAULT 0,
+    total_chunk_count INT NOT NULL DEFAULT 0,
+    pending_chunk_count INT NOT NULL DEFAULT 0,
+    success_count INT NOT NULL DEFAULT 0,
+    failed_count INT NOT NULL DEFAULT 0,
+    skipped_count INT NOT NULL DEFAULT 0,
+    error_message VARCHAR(1000) DEFAULT NULL,
+    started_at DATETIME DEFAULT NULL,
+    finished_at DATETIME DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_document_id (document_id),
+    INDEX idx_space_id (space_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+    );

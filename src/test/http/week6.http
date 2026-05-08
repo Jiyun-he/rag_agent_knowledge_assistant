@@ -1,0 +1,21 @@
+### Submit async vectorization task
+POST http://localhost:8080/api/rag/documents/1/vectorize-async
+
+
+### Get embedding task by taskId
+GET http://localhost:8080/api/rag/embedding-tasks/1
+
+
+### List embedding tasks of document
+GET http://localhost:8080/api/rag/documents/1/embedding-tasks
+
+
+### Ask after async vectorization
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "What is the service layer used for?",
+  "topK": 5
+}
