@@ -20,12 +20,6 @@ public class RagRetrievalController {
         this.knowledgeEmbeddingService = knowledgeEmbeddingService;
     }
 
-    @PostMapping("/documents/{documentId}/vectorize")
-    public ApiResponse<VectorizeDocumentResponse> vectorizeDocument(@PathVariable Long documentId) {
-        VectorizeDocumentResponse response = knowledgeEmbeddingService.vectorizeDocument(documentId);
-        return ApiResponse.success(response);
-    }
-
     @PostMapping("/search")
     public ApiResponse<List<SearchChunkResponse>> searchChunks(@Valid @RequestBody SearchChunksRequest request) {
         List<SearchChunkResponse> response = knowledgeEmbeddingService.searchChunks(request);

@@ -1,0 +1,85 @@
+### Week 7 - 创建知识空间
+POST http://localhost:8080/api/spaces
+Content-Type: application/json
+
+{
+  "name": "Week 7 RAG Test Space",
+  "description": "Knowledge space for Week 7 validation"
+}
+
+
+### Week 7 - 创建测试文档
+POST http://localhost:8080/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": 2,
+  "title": "Service Layer Test Document",
+  "content": "The service layer is used to organize business logic. Controllers should not directly call database mappers. In a RAG application, documents are stored first, then split into chunks, and later converted into embeddings for semantic retrieval."
+}
+
+
+### Week 7 - 提交异步向量化任务
+POST http://localhost:8080/api/rag/documents/1/vectorize-async
+
+
+### Week 7 - 查询向量化任务状态
+GET http://localhost:8080/api/rag/embedding-tasks/1
+
+
+### Week 7 - 查询文档所有向量化任务
+GET http://localhost:8080/api/rag/documents/1/embedding-tasks
+
+
+### Week 7 - 检索 chunks
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "What is the service layer used for?",
+  "topK": 5
+}
+
+
+### Week 7 - ask 接口：有匹配上下文
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "What is the service layer used for?",
+  "topK": 5
+}
+
+
+### Week 7 - ask 接口：无明显匹配上下文
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "How to repair a motorcycle engine?",
+  "topK": 5
+}
+
+
+### Week 7 - ask 接口：缺少 spaceId，验证异常处理
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "question": "What is the service layer used for?",
+  "topK": 5
+}
+
+
+### Week 7 - ask 接口：空问题，验证异常处理
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "",
+  "topK": 5
+}
