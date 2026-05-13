@@ -14,6 +14,18 @@ public class SearchChunkResponse {
 
     private Double score;
 
+    private Double vectorScore;
+
+    private Double keywordScore;
+
+    private Double hybridScore;
+
+    private Double rerankScore;
+
+    private Double finalScore;
+
+    private String retrievalSource;
+
     public Long getChunkId() {
         return chunkId;
     }
@@ -60,5 +72,59 @@ public class SearchChunkResponse {
 
     public void setScore(Double score) {
         this.score = score;
+    }
+
+    public Double getVectorScore() {
+        return vectorScore;
+    }
+
+    public SearchChunkResponse setVectorScore(Double vectorScore) {
+        this.vectorScore = vectorScore;
+        return this;
+    }
+
+    public Double getKeywordScore() {
+        return keywordScore;
+    }
+
+    public SearchChunkResponse setKeywordScore(Double keywordScore) {
+        this.keywordScore = keywordScore;
+        return this;
+    }
+
+    public Double getHybridScore() {
+        return hybridScore;
+    }
+
+    public SearchChunkResponse setHybridScore(Double hybridScore) {
+        this.hybridScore = hybridScore;
+        return this;
+    }
+
+    public Double getRerankScore() {
+        return rerankScore;
+    }
+
+    public SearchChunkResponse setRerankScore(Double rerankScore) {
+        this.rerankScore = rerankScore;
+        return this;
+    }
+
+    public Double getFinalScore() {
+        return finalScore;
+    }
+
+    public SearchChunkResponse setFinalScore(Double finalScore) {
+        this.finalScore = finalScore;
+        return this;
+    }
+
+    public String getRetrievalSource() {
+        return retrievalSource;
+    }
+
+    public SearchChunkResponse setRetrievalSource(String retrievalSource) {
+        this.retrievalSource = retrievalSource;
+        return this;
     }
 }
