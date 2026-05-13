@@ -7,9 +7,9 @@ import com.nuaa.ragagent.response.AskResponse;
 import com.nuaa.ragagent.response.QaHistorySaveResult;
 import com.nuaa.ragagent.response.RagAnswerReferenceResponse;
 import com.nuaa.ragagent.response.SearchChunkResponse;
-import com.nuaa.ragagent.service.KnowledgeEmbeddingService;
 import com.nuaa.ragagent.service.QaHistoryService;
 import com.nuaa.ragagent.service.RagQaService;
+import com.nuaa.ragagent.service.RagRetrievalService;
 import com.nuaa.ragagent.util.RagPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ public class RagQaServiceImpl implements RagQaService {
 
     private static final int CONTENT_PREVIEW_LENGTH = 300;
 
-    private final KnowledgeEmbeddingService knowledgeEmbeddingService;
+    private final RagRetrievalService ragRetrievalService;
 
     private final ChatClient chatClient;
 
@@ -34,11 +34,11 @@ public class RagQaServiceImpl implements RagQaService {
 
     private final QaHistoryService qaHistoryService;
 
-    public RagQaServiceImpl(KnowledgeEmbeddingService knowledgeEmbeddingService,
+    public RagQaServiceImpl(RagRetrievalService ragRetrievalService,
                             ChatClient chatClient,
                             RagPromptBuilder ragPromptBuilder,
                             QaHistoryService qaHistoryService) {
-        this.knowledgeEmbeddingService = knowledgeEmbeddingService;
+        this.ragRetrievalService = ragRetrievalService;
         this.chatClient = chatClient;
         this.ragPromptBuilder = ragPromptBuilder;
         this.qaHistoryService = qaHistoryService;
@@ -50,12 +50,9 @@ public class RagQaServiceImpl implements RagQaService {
 
         int topK = normalizeTopK(request.getTopK());
 
-        SearchChunksRequest searchRequest = new SearchChunksRequest();
-        searchRequest.setSpaceId(request.getSpaceId());
-        searchRequest.setQuery(request.getQuestion());
-        searchRequest.setTopK(topK);
+        SearchChunksRequest searchRequest = buildSearchRequest(request, topK);
 
-        List<SearchChunkResponse> chunks = knowledgeEmbeddingService.searchChunks(searchRequest);
+        List<SearchChunkResponse> chunks = ragRetrievalService.search(searchRequest);
 
         AskResponse response;
 
@@ -86,6 +83,21 @@ public class RagQaServiceImpl implements RagQaService {
                 .setAssistantMessageId(historySaveResult.getAssistantMessageId());
 
         return response;
+    }
+
+    private SearchChunksRequest buildSearchRequest(AskRequest request, int topK) {
+        SearchChunksRequest searchRequest = new SearchChunksRequest();
+
+        searchRequest.setSpaceId(request.getSpaceId());
+        searchRequest.setQuery(request.getQuestion());
+        searchRequest.setTopK(topK);
+
+        searchRequest.setRetrievalMode(request.getRetrievalMode());
+        searchRequest.setCandidateK(request.getCandidateK());
+        searchRequest.setVectorWeight(request.getVectorWeight());
+        searchRequest.setKeywordWeight(request.getKeywordWeight());
+
+        return searchRequest;
     }
 
     private void validateRequest(AskRequest request) {

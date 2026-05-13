@@ -1,0 +1,67 @@
+### 测试VECTOR_ONLY
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "异步向量化任务的作用是什么",
+  "retrievalMode": "VECTOR_ONLY",
+  "topK": 5
+}
+
+
+### 测试KEYWORD_ONLY
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "EmbeddingTaskService",
+  "retrievalMode": "KEYWORD_ONLY",
+  "topK": 5
+}
+
+### 测试HYBRID
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "EmbeddingTaskService 异步向量化任务",
+  "retrievalMode": "HYBRID",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.7,
+  "keywordWeight": 0.3
+}
+
+
+### 测试HYBRID_RERANK
+POST http://localhost:8080/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "query": "EmbeddingTaskService 异步向量化任务",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.6,
+  "keywordWeight": 0.4
+}
+
+
+### 测试ask使用HYBRID_RERANK
+POST http://localhost:8080/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "question": "异步向量化任务的作用是什么？",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.6,
+  "keywordWeight": 0.4
+}
+
