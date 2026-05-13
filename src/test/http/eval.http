@@ -1,0 +1,77 @@
+### 创建评测集
+POST http://localhost:8080/api/rag/eval/datasets
+Content-Type: application/json
+
+{
+  "spaceId": 1,
+  "name": "RAG 检索增强评测集",
+  "description": "用于比较 VECTOR_ONLY、KEYWORD_ONLY、HYBRID、HYBRID_RERANK 的检索效果"
+}
+### 添加评测case
+POST http://localhost:8080/api/rag/eval/datasets/1/cases
+Content-Type: application/json
+
+{
+"question": "异步向量化任务的作用是什么？",
+"expectedAnswer": "异步向量化任务用于记录文档向量化过程中的任务状态、成功数量、失败数量、跳过数量、开始时间、结束时间和错误信息。",
+"expectedChunkIds": [1, 2],
+"expectedKeywords": ["异步向量化", "任务状态", "成功", "失败", "跳过"],
+"difficulty": "easy"
+}
+
+### 偏向关键词问题
+POST http://localhost:8080/api/rag/eval/datasets/1/cases
+Content-Type: application/json
+
+{
+  "question": "EmbeddingTaskService 是做什么的？",
+  "expectedAnswer": "EmbeddingTaskService 用于管理异步向量化任务的创建、查询和状态更新。",
+  "expectedChunkIds": [3],
+  "expectedKeywords": ["EmbeddingTaskService", "异步", "任务", "状态"],
+  "difficulty": "medium"
+}
+
+### 查询评测case
+GET http://localhost:8080/api/rag/eval/datasets/1/cases
+
+### 启动VECTOR_ONLY评测
+POST http://localhost:8080/api/rag/eval/runs
+Content-Type: application/json
+
+{
+  "datasetId": 1,
+  "runName": "vector-only-top5",
+  "retrievalMode": "VECTOR_ONLY",
+  "topK": 5,
+  "candidateK": 20,
+  "enableAnswerGeneration": false
+}
+
+### 启动HYBRID_RERANK评测
+POST http://localhost:8080/api/rag/eval/runs
+Content-Type: application/json
+
+{
+  "datasetId": 1,
+  "runName": "hybrid-rerank-top5",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.6,
+  "keywordWeight": 0.4,
+  "enableAnswerGeneration": true
+}
+
+### 查询run汇总
+GET http://localhost:8080/api/rag/eval/runs/1
+
+### 查询每个 case 的结果
+GET http://localhost:8080/api/rag/eval/runs/1/results
+
+### Compare eval runs
+POST http://localhost:8080/api/rag/eval/runs/compare
+Content-Type: application/json
+
+{
+  "runIds": [1, 2, 3, 4]
+}
