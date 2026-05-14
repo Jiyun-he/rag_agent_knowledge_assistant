@@ -27,7 +27,7 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
     private static final double DEFAULT_VECTOR_WEIGHT = 0.7;
     private static final double DEFAULT_KEYWORD_WEIGHT = 0.3;
     private static final int CHUNK_STATUS_NORMAL = 1;
-    private static final int CHUNK_EMBEDDING_STATUS_SUCCESS = 2;
+    private static final int CHUNK_EMBEDDING_STATUS_SUCCESS = 1;
 
     private final KbChunkMapper kbChunkMapper;
     private final KnowledgeEmbeddingService knowledgeEmbeddingService;
