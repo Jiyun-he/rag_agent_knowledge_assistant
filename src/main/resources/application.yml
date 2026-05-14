@@ -13,8 +13,10 @@ spring:
 
   sql:
     init:
-      mode: never
-
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      encoding: UTF-8
+      continue-on-error: false
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
