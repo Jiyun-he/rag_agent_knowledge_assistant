@@ -1,0 +1,274 @@
+@host = http://localhost:8080
+@spaceId = 1
+@doc1 = 1
+@doc2 = 2
+@doc3 = 3
+@doc4 = 4
+@doc5 = 5
+@doc6 = 6
+@doc7 = 7
+@doc8 = 8
+@datasetId = 1
+
+### 0. 健康检查
+GET {{host}}/api/health/ping
+
+### 1. 创建项目自测知识库空间
+POST {{host}}/api/spaces
+Content-Type: application/json
+
+{
+  "name": "RAG项目自测知识库",
+  "description": "用于测试 rag_agent_knowledge_assistant 项目自身文档的知识库空间"
+}
+
+### 2.1 创建文档：01_project_overview.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "01_project_overview",
+  "content": "# 项目总体说明\n\n本项目名为 rag_agent_knowledge_assistant，主包路径为 com.nuaa.ragagent，是一个基于 Spring Boot、MySQL、Qdrant 和 OpenAI-compatible 大模型接口实现的 RAG 知识库问答系统后端。系统的核心目标是将文档资料转化为可检索的知识库，并在用户提问时通过检索增强生成回答。\n\n项目的基本链路包括知识库空间创建、文档创建、文本切分、chunk 存储、异步向量化、Qdrant 向量写入、RAG 检索、RAG 问答、问答历史保存、引用追踪和 RAG Evaluation 评测。MySQL 主要负责保存结构化业务数据，例如知识库空间、文档、chunk、向量化任务、问答历史和评测记录。Qdrant 主要负责保存 chunk embedding 向量，并提供向量相似度检索能力。\n\n在一次完整 RAG 问答中，用户提交问题后，系统首先根据 spaceId 限定知识库范围，然后通过 RagRetrievalService 执行检索。检索结果会被转换为上下文，由 RagPromptBuilder 构建 prompt，再通过 ChatClient 调用大模型生成回答。回答生成后，系统会保存 QaSession、QaMessage 和 QaReference，从而保留问答历史和引用来源。\n\n项目当前支持 VECTOR_ONLY、KEYWORD_ONLY、HYBRID 和 HYBRID_RERANK 四种检索模式。其中 VECTOR_ONLY 侧重语义相似度，KEYWORD_ONLY 侧重精确关键词，HYBRID 同时结合向量召回和关键词召回，HYBRID_RERANK 在混合召回后进一步根据精确术语和技术符号进行规则重排序。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/01_project_overview.md"
+}
+
+### 2.2 创建文档：02_database_design.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "02_database_design",
+  "content": "# 数据库表结构说明\n\n本项目的数据库设计围绕知识库、问答历史和评测三组业务展开。知识库相关表包括 kb_space、kb_document、kb_chunk 和 kb_embedding_task。问答历史相关表包括 qa_session、qa_message 和 qa_reference。评测相关表包括 eval_dataset、eval_case、eval_run 和 eval_case_result。\n\nkb_space 表表示知识库空间，用于隔离不同业务场景或不同文档集合。kb_document 表保存原始文档内容和文档级元数据，包括 spaceId、title、content、sourceType、sourceUri、status 和 chunkCount。kb_chunk 表保存文档切分后的文本片段，是检索和向量化的基本单位，核心字段包括 documentId、spaceId、chunkIndex、content、charCount、embeddingStatus、vectorId 和 status。embeddingStatus 用于表示 chunk 的向量化状态，0 表示 pending，1 表示 done，2 表示 failed。\n\nkb_embedding_task 表记录文档异步向量化任务，包括 documentId、spaceId、taskType、status、totalChunkCount、pendingChunkCount、successCount、failedCount、skippedCount、errorMessage、startedAt 和 finishedAt。任务状态中，0 表示 pending，1 表示 running，2 表示 success，3 表示 failed，4 表示 partial_success。\n\nqa_session 表保存问答会话，qa_message 表保存用户消息和 AI 回答，qa_reference 表保存回答引用的 chunk 信息。qa_reference 中的 messageId 指向 assistant 消息，chunkId、documentId、spaceId 和 chunkIndex 用于追踪回答依据。\n\neval_dataset 表表示评测数据集，eval_case 表表示评测问题，eval_run 表表示一次评测运行，eval_case_result 表保存单个评测问题在某次 run 下的检索和回答结果。EvalRun 记录整体指标，例如 avgRecallAtK、hitRateAtK、mrr、avgAnswerKeywordHit、citationCorrectRate 和 avgLatencyMs。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/02_database_design.md"
+}
+
+### 2.3 创建文档：03_space_document_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "03_space_document_module",
+  "content": "# 知识库空间与文档管理模块说明\n\n知识库空间模块负责管理多个知识库空间。一个 space 可以对应一个项目知识库、一组企业制度文档、一门课程资料或一个业务场景。KnowledgeSpaceController 提供 /api/spaces 下的创建、查询、更新和删除接口。KnowledgeSpaceServiceImpl 负责处理同名校验、状态过滤和软删除逻辑。\n\n文档管理模块负责维护知识库中的原始文档。KnowledgeDocumentController 提供 /api/documents 下的文档创建、查询、更新、删除和 chunk 查询接口。CreateDocumentRequest 包含 spaceId、title、content、sourceType 和 sourceUri。创建文档时，系统会先校验 spaceId 是否存在，然后写入 KbDocument，再调用 TextChunker 对 content 进行切分，并将生成的片段写入 kb_chunk 表。\n\n文档创建并不是简单保存一条 document 记录。因为 RAG 检索的基本单位是 chunk，而不是整篇文档，所以文档写入后必须生成 KbChunk。每个 chunk 会记录 documentId、spaceId、chunkIndex、content、charCount、embeddingStatus 和 status。初始 embeddingStatus 为 0，表示该 chunk 尚未向量化。\n\n文档更新时，系统会更新 KbDocument 的内容，并删除该 documentId 下旧的 chunk，再按照新内容重新切分和写入 chunk。这样可以避免文档正文与 chunk 内容不一致。文档删除采用软删除方式，将 document.status 设置为 0，同时将关联 chunk.status 设置为 0。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/03_space_document_module.md"
+}
+
+### 2.4 创建文档：04_embedding_task_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "04_embedding_task_module",
+  "content": "# 异步向量化模块说明\n\n异步向量化模块负责将文档 chunk 转换为 embedding 向量，并写入 Qdrant。由于 embedding 调用可能涉及外部模型接口，耗时比普通数据库操作更长，因此项目通过异步任务方式执行向量化。\n\nEmbeddingTaskController 提供 POST /api/rag/documents/{documentId}/vectorize-async 接口，用于创建并启动文档向量化任务。任务信息保存在 kb_embedding_task 表中，由 KbEmbeddingTask 表示。任务创建后，EmbeddingTaskServiceImpl 会先写入 pending 状态的任务记录，然后通过 runTaskAsync 异步执行实际向量化逻辑。\n\n实际向量化由 KnowledgeEmbeddingServiceImpl.vectorizeDocument(documentId) 完成。该方法会查询指定文档下 status = 1 且 embeddingStatus = 0 的 chunk。对于每个 pending chunk，系统会生成稳定 vectorId，构造 Spring AI Document，并在 metadata 中写入 source、chunk_id、document_id、space_id 和 chunk_index。随后调用 VectorStore.add 将向量写入 Qdrant。\n\n向量化成功后，系统会更新 KbChunk 的 embeddingStatus 为 1，并写入 vectorId。向量化失败时，embeddingStatus 会被设置为 2。任务执行完成后，系统会统计 totalChunkCount、pendingChunkCount、successCount、failedCount 和 skippedCount，并更新 KbEmbeddingTask 的最终状态。success 表示全部成功，partial_success 表示部分成功，failed 表示任务失败。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/04_embedding_task_module.md"
+}
+
+### 2.5 创建文档：05_rag_retrieval_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "05_rag_retrieval_module",
+  "content": "# RAG 检索模块说明\n\nRAG 检索模块提供统一的知识库检索入口，主要由 RagRetrievalController、RagRetrievalService、RagRetrievalServiceImpl、SearchChunksRequest、SearchChunkResponse 和 RetrievalMode 构成。对外接口为 POST /api/rag/search。\n\nSearchChunksRequest 包含 spaceId、query、retrievalMode、topK、candidateK、vectorWeight 和 keywordWeight。spaceId 用于限定知识库范围，query 是用户查询内容，topK 表示最终返回的 chunk 数量，candidateK 表示混合召回阶段的候选数量。retrievalMode 支持 VECTOR_ONLY、KEYWORD_ONLY、HYBRID 和 HYBRID_RERANK。\n\nVECTOR_ONLY 模式只使用 Qdrant 向量检索。系统将 query 转换为 embedding 后，在 Qdrant 中根据 space_id metadata 过滤指定知识库空间，并返回相似 chunk。向量检索适合自然语言语义问题，例如“系统如何完成一次 RAG 问答”。\n\nKEYWORD_ONLY 模式使用 MySQL 关键词检索。系统会从 query 中提取 terms，通过 kb_chunk.content 的 LIKE 条件查找匹配片段，并计算 keywordScore。关键词检索适合类名、接口路径、方法名、字段名等精确符号，例如 RagRetrievalServiceImpl、/api/rag/search 和 SearchChunksRequest。\n\n检索结果统一封装为 SearchChunkResponse。该对象包含 chunkId、documentId、spaceId、chunkIndex、content、score、vectorScore、keywordScore、hybridScore、rerankScore、finalScore 和 retrievalSource 等字段。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/05_rag_retrieval_module.md"
+}
+
+### 2.6 创建文档：06_hybrid_rerank_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "06_hybrid_rerank_module",
+  "content": "# Hybrid Search 与 Rerank 模块说明\n\nHybrid Search + Rerank 是本项目在基础向量检索之上的增强检索模块。它的目标是同时利用语义召回和关键词召回，改善技术文档场景下只依赖向量检索可能出现的类名、接口名、方法名命中不稳定问题。\n\nHYBRID 模式会先执行向量检索，召回 candidateK 个候选 chunk；同时执行关键词检索，再召回 candidateK 个候选 chunk。随后系统按 chunkId 对两组候选结果合并去重。如果一个 chunk 同时被向量检索和关键词检索命中，则 retrievalSource 记为 BOTH；如果只被向量检索命中，则为 VECTOR；如果只被关键词检索命中，则为 KEYWORD。\n\n合并后，系统会计算 normalizedVectorScore 和 normalizedKeywordScore，并按照权重融合得到 hybridScore。当前融合公式为 hybridScore = vectorWeight * normalizedVectorScore + keywordWeight * normalizedKeywordScore。默认 vectorWeight 为 0.7，keywordWeight 为 0.3。\n\nHYBRID_RERANK 模式会在 HYBRID 结果基础上继续进行规则重排序。当前规则会计算 exactTermScore 和 symbolScore。exactTermScore 表示普通精确词命中程度，symbolScore 更关注类名、方法名、接口路径、Request、Response、Service、Controller 等技术符号。最终 rerankScore 会结合 hybridScore、exactTermScore 和 symbolScore，得到 finalScore 并按降序返回 topK 结果。\n\n该模块当前属于规则型 rerank，而不是 cross-encoder 或 LLM rerank。它的特点是实现简单、成本低、可解释，适合第一版工程验证。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/06_hybrid_rerank_module.md"
+}
+
+### 2.7 创建文档：07_rag_qa_history_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "07_rag_qa_history_module",
+  "content": "# RAG 问答与引用追踪模块说明\n\nRAG 问答模块负责把检索结果转化为大模型可用的上下文，并生成最终回答。核心类包括 RagQaController、RagQaService、RagQaServiceImpl、RagPromptBuilder、AskRequest、AskResponse 和 RagAnswerReferenceResponse。对外接口为 POST /api/rag/ask。\n\nAskRequest 包含 spaceId、sessionId、question、topK、retrievalMode、candidateK、vectorWeight 和 keywordWeight。RagQaServiceImpl 接收请求后，会先校验 spaceId 和 question，再构造 SearchChunksRequest，并调用 RagRetrievalService.search 执行检索。如果没有检索到有效 chunk，系统会返回“当前知识库中没有检索到足够相关的内容，因此无法基于已有知识库给出可靠回答”。\n\n如果检索到相关 chunk，RagPromptBuilder 会根据 question 和检索结果构造 prompt。prompt 会要求模型尽量基于提供的 context 回答，不编造 context 中没有的信息，并使用 Reference 标注引用来源。随后系统通过 ChatClient 调用大模型生成回答。\n\n问答历史与引用追踪由 QaHistoryServiceImpl 负责。一次 ask 会保存用户问题和 AI 回答。QaSession 表示一次会话，QaMessage 表示会话中的 user 或 assistant 消息，QaReference 表示 assistant 回答引用的 chunk。AskResponse 中会返回 sessionId、userMessageId、assistantMessageId 和 references，方便后续查询完整会话和回答依据。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/07_rag_qa_history_module.md"
+}
+
+### 2.8 创建文档：08_rag_evaluation_module.md
+POST {{host}}/api/documents
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "title": "08_rag_evaluation_module",
+  "content": "# RAG Evaluation 评测模块说明\n\nRAG Evaluation 模块用于对不同检索策略进行量化评估。核心类包括 RagEvaluationController、RagEvaluationService、RagEvaluationServiceImpl、EvalDataset、EvalCase、EvalRun、EvalCaseResult、StartEvalRunRequest 和 CompareEvalRunsRequest。基础路径为 /api/rag/eval。\n\nEvalDataset 表示一个评测数据集，并绑定具体 spaceId。EvalCase 表示一个评测问题，包含 question、expectedAnswer、expectedChunkIds、expectedKeywords 和 difficulty。expectedChunkIds 用于计算检索相关指标，expectedKeywords 用于计算生成回答中的关键词命中情况。\n\nEvalRun 表示一次评测运行，记录 datasetId、runName、retrievalMode、topK、candidateK、vectorWeight、keywordWeight 和 enableAnswerGeneration 等配置。启动 EvalRun 后，系统会遍历该数据集下的所有 EvalCase。每个 case 会构造 SearchChunksRequest，并调用 RagRetrievalService.search 执行检索。系统随后记录 retrievedChunkIds，并计算 Recall@K、Hit@K 和 MRR。\n\nRecall@K 表示前 K 个结果召回了多少比例的 expectedChunkIds。Hit@K 表示前 K 个结果中是否命中至少一个 expectedChunkId。MRR 表示第一个正确 chunk 的倒数排名。如果 enableAnswerGeneration 为 true，系统还会调用 ChatClient 生成回答，并计算 Answer Keyword Hit。\n\nEvalCaseResult 保存单个评测问题的结果，EvalRun 保存整体汇总指标。compare run 接口可以对多个 EvalRun 进行比较，常用于比较 VECTOR_ONLY、KEYWORD_ONLY、HYBRID 和 HYBRID_RERANK 的检索效果。\n",
+  "sourceType": "PROJECT_DOC",
+  "sourceUri": "docs/08_rag_evaluation_module.md"
+}
+
+### 3. 查看当前知识库下的文档列表
+GET {{host}}/api/documents?spaceId={{spaceId}}
+
+### 4.1 查看文档 1 的 chunks
+GET {{host}}/api/documents/{{doc1}}/chunks
+
+### 4.2 查看文档 2 的 chunks
+GET {{host}}/api/documents/{{doc2}}/chunks
+
+### 4.3 查看文档 3 的 chunks
+GET {{host}}/api/documents/{{doc3}}/chunks
+
+### 4.4 查看文档 4 的 chunks
+GET {{host}}/api/documents/{{doc4}}/chunks
+
+### 4.5 查看文档 5 的 chunks
+GET {{host}}/api/documents/{{doc5}}/chunks
+
+### 4.6 查看文档 6 的 chunks
+GET {{host}}/api/documents/{{doc6}}/chunks
+
+### 4.7 查看文档 7 的 chunks
+GET {{host}}/api/documents/{{doc7}}/chunks
+
+### 4.8 查看文档 8 的 chunks
+GET {{host}}/api/documents/{{doc8}}/chunks
+
+### 5.1 异步向量化文档 1
+POST {{host}}/api/rag/documents/{{doc1}}/vectorize-async
+
+### 5.2 异步向量化文档 2
+POST {{host}}/api/rag/documents/{{doc2}}/vectorize-async
+
+### 5.3 异步向量化文档 3
+POST {{host}}/api/rag/documents/{{doc3}}/vectorize-async
+
+### 5.4 异步向量化文档 4
+POST {{host}}/api/rag/documents/{{doc4}}/vectorize-async
+
+### 5.5 异步向量化文档 5
+POST {{host}}/api/rag/documents/{{doc5}}/vectorize-async
+
+### 5.6 异步向量化文档 6
+POST {{host}}/api/rag/documents/{{doc6}}/vectorize-async
+
+### 5.7 异步向量化文档 7
+POST {{host}}/api/rag/documents/{{doc7}}/vectorize-async
+
+### 5.8 异步向量化文档 8
+POST {{host}}/api/rag/documents/{{doc8}}/vectorize-async
+
+### 6. 查询文档 1 的向量化任务
+GET {{host}}/api/rag/documents/{{doc1}}/embedding-tasks
+
+### 6. 查询文档 2 的向量化任务
+GET {{host}}/api/rag/documents/{{doc2}}/embedding-tasks
+
+### 7. VECTOR_ONLY 检索：普通语义问题
+POST {{host}}/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "query": "这个系统如何完成一次 RAG 问答？",
+  "retrievalMode": "VECTOR_ONLY",
+  "topK": 5,
+  "candidateK": 20
+}
+
+### 8. KEYWORD_ONLY 检索：精确类名
+POST {{host}}/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "query": "RagRetrievalServiceImpl SearchChunksRequest",
+  "retrievalMode": "KEYWORD_ONLY",
+  "topK": 5,
+  "candidateK": 20
+}
+
+### 9. HYBRID 检索：语义 + 技术词
+POST {{host}}/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "query": "EmbeddingTaskServiceImpl 如何管理 vectorize-async 向量化任务？",
+  "retrievalMode": "HYBRID",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.7,
+  "keywordWeight": 0.3
+}
+
+### 10. HYBRID_RERANK 检索：接口路径 + 指标
+POST {{host}}/api/rag/search
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "query": "/api/rag/eval/runs/compare 接口如何比较 EvalRun 的 MRR？",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.7,
+  "keywordWeight": 0.3
+}
+
+### 11. RAG ask：有答案问题
+POST {{host}}/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "question": "RAG 检索模块支持哪些 retrievalMode？",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20,
+  "vectorWeight": 0.7,
+  "keywordWeight": 0.3
+}
+
+### 12. RAG ask：无答案问题，用于检查是否胡编
+POST {{host}}/api/rag/ask
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "question": "这个系统是否已经实现前端登录页面和权限管理？",
+  "retrievalMode": "HYBRID_RERANK",
+  "topK": 5,
+  "candidateK": 20
+}
+
+### 13. 查询当前 space 的问答会话
+GET {{host}}/api/qa/history/spaces/{{spaceId}}/sessions
+
+### 14. 创建 Evaluation 数据集
+POST {{host}}/api/rag/eval/datasets
+Content-Type: application/json
+
+{
+  "spaceId": {{spaceId}},
+  "name": "RAG项目自测评测集",
+  "description": "基于项目自身文档构造的第一版 RAG 检索评测集"
+}
+
+### 15. 查询 Evaluation 数据集
+GET {{host}}/api/rag/eval/datasets
+
+### 16. 注意：EvalCase 需要先查看真实 chunkId 后再创建
+# 执行 GET /api/documents/{id}/chunks，记录每个问题对应的 chunkId。
+# 然后到 02_eval_cases_template.http 中替换 chunkId，再运行创建评测 case 和 eval run。

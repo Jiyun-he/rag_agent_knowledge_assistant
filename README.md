@@ -618,28 +618,27 @@ RAG 问答接口不仅返回最终回答，还返回匹配到的来源片段，�
 
 项目按照 Controller、Service、Mapper、Entity、Request、Response 等层次组织代码，使接口处理、业务逻辑、数据库访问和数据传输对象保持清晰分离，便于后续维护和功能扩展。
 
-## 评测结果说明
+### 初步评测结果
 
-当前项目已经具备 RAG 评测和多 run 对比能力，但暂不在 README 中写入具体性能结论。原因是当前知识库数据量和评测 case 还不足以支撑稳定、可信的策略优劣判断。
+基于项目自身技术文档构建第一版评测集，共包含 12 个 EvalCase。评测时 `enableAnswerGeneration=false`，因此结果主要反映检索质量，不包含大模型回答质量。
 
-后续准备真实知识库数据后，将补充如下格式的评测结果表：
+| Retrieval Mode | Recall@K | Hit@K | MRR | Citation Correct Rate | Avg Latency |
+|---|---:|---:|---:|---:|---:|
+| VECTOR_ONLY | **0.8333** | 0.8333 | **0.7917** | 0.8333 | 848.50 ms |
+| KEYWORD_ONLY | 0.6250 | 0.7500 | 0.5417 | 0.7500 | **2.83 ms** |
+| HYBRID | 0.7917 | 0.8333 | **0.7917** | 0.8333 | 906.67 ms |
+| HYBRID_RERANK | **0.8333** | **0.9167** | 0.7639 | **0.9167** | 951.17 ms |
 
-| Retrieval Mode |  Hit@5 | Recall@5 |    MRR | Avg Latency |
-| -------------- | -----: | -------: | -----: | ----------: |
-| VECTOR_ONLY    | 待补充 |   待补充 | 待补充 |      待补充 |
-| KEYWORD_ONLY   | 待补充 |   待补充 | 待补充 |      待补充 |
-| HYBRID         | 待补充 |   待补充 | 待补充 |      待补充 |
-| HYBRID_RERANK  | 待补充 |   待补充 | 待补充 |      待补充 |
+结果显示，VECTOR_ONLY 在语义型问题上仍是较强基线；KEYWORD_ONLY 延迟最低，但整体召回和排序质量较弱；HYBRID 在当前权重下 MRR 与 VECTOR_ONLY 持平；HYBRID_RERANK 在 Hit@K 和 Citation Correct Rate 上表现最好，说明规则重排序对 topK 命中覆盖具有一定增益。
 
-建议后续准备 3 到 5 篇真实项目文档，构建 20 到 30 个评测问题，并为每个问题标注 1 到 3 个期望召回 chunkId，再分别运行四种检索策略进行对比。
+由于第一版 EvalCase 主要基于项目自身技术文档构造，问题整体仍偏语义理解，因此 VECTOR_ONLY 在单一检索策略中保持较强表现，明显优于 KEYWORD_ONLY。KEYWORD_ONLY 主要依赖字面匹配，延迟最低，但召回和排序质量仍然较弱。HYBRID 使用向量分数与关键词分数的简单加权融合，在当前权重下 MRR 已经追平 VECTOR_ONLY，但 Recall@K 略低，说明融合策略整体可用但仍有调参空间。HYBRID_RERANK 在 HYBRID 基础上进一步考虑精确词和技术符号命中情况，在 Recall@K 上与 VECTOR_ONLY 并列最优，并在 Hit@K 和 Citation Correct Rate 上取得最高结果；其 MRR 略低于 VECTOR_ONLY，但差距较小，说明规则重排序提升了 topK 命中覆盖能力，同时仍有进一步优化首位排序精度的空间。
 
 ## 后续规划
 
 后续可能继续扩展以下能力：
 
-- 准备真实知识库数据和正式评测 case
-- 将真实评测结果写入 README
-- 文件上传与文档解析
+- 增加更多的知识库数据和评测case
+- 文件上传与文档解析功能
 - 更灵活的文本切分策略
 - 相似度阈值配置与检索质量优化
 - LLM-as-a-Judge 回答质量评估
