@@ -41,6 +41,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+/**
+ * @author jiyunhe
+ */
 
 @Service
 public class RagEvaluationServiceImpl implements RagEvaluationService {
@@ -55,6 +58,8 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
 
     private static final int DEFAULT_TOP_K = 5;
     private static final int DEFAULT_CANDIDATE_K = 20;
+
+    private static final int MIN_COMPARE_RUNS = 2;
 
     private final EvalDatasetMapper evalDatasetMapper;
     private final EvalCaseMapper evalCaseMapper;
@@ -89,7 +94,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
 
         List<Long> orderedRunIds = new ArrayList<>(new LinkedHashSet<>(request.getRunIds()));
 
-        List<EvalRun> runs = evalRunMapper.selectBatchIds(orderedRunIds);
+        List<EvalRun> runs = evalRunMapper.selectByIds(orderedRunIds);
 
         if (runs.size() != orderedRunIds.size()) {
             throw new BusinessException("部分评测运行不存在，请检查 runIds");
@@ -413,7 +418,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
             throw new BusinessException("runIds cannot be empty");
         }
 
-        if (request.getRunIds().size() < 2) {
+        if (request.getRunIds().size() < MIN_COMPARE_RUNS) {
             throw new BusinessException("至少需要提供两个 runId 才能进行对比");
         }
 

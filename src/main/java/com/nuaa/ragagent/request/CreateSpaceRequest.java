@@ -2,6 +2,9 @@ package com.nuaa.ragagent.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+/**
+ * @author jiyunhe
+ */
 
 public class CreateSpaceRequest {
 

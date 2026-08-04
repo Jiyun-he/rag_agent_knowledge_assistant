@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+/**
+ * @author jiyunhe
+ */
 
 @Service
 public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService {
@@ -34,6 +37,12 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
     private static final Integer EMBEDDING_SUCCESS = 1;
 
     private static final Integer EMBEDDING_FAILED = 2;
+
+    private static final Integer DEFAULT_TOP_K = 5;
+
+    private static final Integer MIN_TOP_K = 1;
+
+    private static final Integer MAX_TOP_K = 20;
 
     private final KbSpaceMapper kbSpaceMapper;
 
@@ -54,7 +63,7 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public VectorizeDocumentResponse vectorizeDocument(Long documentId) {
         if (documentId == null) {
             throw new BusinessException("documentId cannot be null");
@@ -85,7 +94,7 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
         for (KbChunk chunk : pendingChunks) {
             String vectorId = buildVectorId(chunk.getId());
 
-            Map<String, Object> metadata = new HashMap<>();
+            Map<String, Object> metadata = new HashMap<>(12);
             metadata.put("source", "kb_chunk");
             metadata.put("chunk_id", String.valueOf(chunk.getId()));
             metadata.put("document_id", String.valueOf(chunk.getDocumentId()));
@@ -200,13 +209,13 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
 
     private int normalizeTopK(Integer topK) {
         if (topK == null) {
-            return 5;
+            return DEFAULT_TOP_K;
         }
-        if (topK < 1) {
-            return 1;
+        if (topK < MIN_TOP_K) {
+            return MIN_TOP_K;
         }
-        if (topK > 20) {
-            return 20;
+        if (topK > MAX_TOP_K) {
+            return MAX_TOP_K;
         }
         return topK;
     }

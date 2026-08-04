@@ -1,4 +1,7 @@
 package com.nuaa.ragagent.request;
+/**
+ * @author jiyunhe
+ */
 
 public class AskRequest {
 

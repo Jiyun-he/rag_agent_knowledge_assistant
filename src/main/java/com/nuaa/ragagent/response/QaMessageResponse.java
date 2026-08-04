@@ -2,6 +2,9 @@ package com.nuaa.ragagent.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 public class QaMessageResponse {
 

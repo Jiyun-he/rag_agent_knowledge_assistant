@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @Component
 public class TextChunker {

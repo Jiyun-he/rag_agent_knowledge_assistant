@@ -4,6 +4,9 @@ import com.nuaa.ragagent.response.SearchChunkResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @Component
 public class RagPromptBuilder {
