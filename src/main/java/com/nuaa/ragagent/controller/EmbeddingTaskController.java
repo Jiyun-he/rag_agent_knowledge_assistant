@@ -6,6 +6,9 @@ import com.nuaa.ragagent.service.EmbeddingTaskService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @RestController
 @RequestMapping("/api/rag")

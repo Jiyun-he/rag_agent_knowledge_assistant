@@ -1,4 +1,7 @@
 package com.nuaa.ragagent.common;
+/**
+ * @author jiyunhe
+ */
 
 public class ApiResponse<T> {
 

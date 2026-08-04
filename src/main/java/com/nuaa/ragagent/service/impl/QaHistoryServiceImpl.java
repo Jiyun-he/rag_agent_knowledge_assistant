@@ -23,12 +23,17 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @Service
 public class QaHistoryServiceImpl implements QaHistoryService {
 
     private static final String ROLE_USER = "user";
     private static final String ROLE_ASSISTANT = "assistant";
+
+    private static final int MAX_SESSION_TITLE_LENGTH = 50;
 
     private final QaSessionMapper qaSessionMapper;
 
@@ -45,7 +50,7 @@ public class QaHistoryServiceImpl implements QaHistoryService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public QaHistorySaveResult saveAskHistory(AskRequest request, AskResponse response) {
         if (request == null) {
             throw new BusinessException("Ask request must not be null");
@@ -265,8 +270,8 @@ public class QaHistoryServiceImpl implements QaHistoryService {
             return "Untitled session";
         }
 
-        if (title.length() > 50) {
-            return title.substring(0, 50);
+        if (title.length() > MAX_SESSION_TITLE_LENGTH) {
+            return title.substring(0, MAX_SESSION_TITLE_LENGTH);
         }
 
         return title;

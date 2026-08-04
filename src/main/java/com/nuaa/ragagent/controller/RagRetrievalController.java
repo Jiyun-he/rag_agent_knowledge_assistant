@@ -10,6 +10,9 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @RestController
 @RequestMapping("/api/rag")
@@ -26,6 +29,7 @@ public class RagRetrievalController {
 //        List<SearchChunkResponse> response = knowledgeEmbeddingService.searchChunks(request);
 //        return ApiResponse.success(response);
 //    }
+
     private final RagRetrievalService ragRetrievalService;
 
     public RagRetrievalController(RagRetrievalService ragRetrievalService) {

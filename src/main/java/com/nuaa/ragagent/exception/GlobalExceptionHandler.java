@@ -4,6 +4,9 @@ import com.nuaa.ragagent.common.ApiResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+/**
+ * @author jiyunhe
+ */
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

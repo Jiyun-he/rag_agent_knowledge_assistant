@@ -1,6 +1,9 @@
 package com.nuaa.ragagent.response;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 public class EvalRunCompareResponse {
 

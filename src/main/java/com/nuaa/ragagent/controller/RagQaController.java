@@ -5,6 +5,9 @@ import com.nuaa.ragagent.request.AskRequest;
 import com.nuaa.ragagent.response.AskResponse;
 import com.nuaa.ragagent.service.RagQaService;
 import org.springframework.web.bind.annotation.*;
+/**
+ * @author jiyunhe
+ */
 
 @RestController
 @RequestMapping("/api/rag")

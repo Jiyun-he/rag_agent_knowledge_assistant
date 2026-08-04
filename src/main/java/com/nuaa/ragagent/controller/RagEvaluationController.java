@@ -14,6 +14,9 @@ import com.nuaa.ragagent.request.CompareEvalRunsRequest;
 import com.nuaa.ragagent.response.EvalRunCompareResponse;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @RestController
 @RequestMapping("/api/rag/eval")

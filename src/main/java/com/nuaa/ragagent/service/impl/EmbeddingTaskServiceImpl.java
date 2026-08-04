@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+/**
+ * @author jiyunhe
+ */
 
 @Service
 public class EmbeddingTaskServiceImpl implements EmbeddingTaskService {
@@ -27,6 +30,8 @@ public class EmbeddingTaskServiceImpl implements EmbeddingTaskService {
     private static final int STATUS_SUCCESS = 2;
     private static final int STATUS_FAILED = 3;
     private static final int STATUS_PARTIAL_SUCCESS = 4;
+
+    private static final int MAX_ERROR_MESSAGE_LENGTH = 1000;
 
     private final KbEmbeddingTaskMapper embeddingTaskMapper;
     private final KbDocumentMapper documentMapper;
@@ -245,10 +250,10 @@ public class EmbeddingTaskServiceImpl implements EmbeddingTaskService {
             return "Unknown error";
         }
 
-        if (message.length() <= 1000) {
+        if (message.length() <= MAX_ERROR_MESSAGE_LENGTH) {
             return message;
         }
 
-        return message.substring(0, 1000);
+        return message.substring(0, MAX_ERROR_MESSAGE_LENGTH);
     }
 }

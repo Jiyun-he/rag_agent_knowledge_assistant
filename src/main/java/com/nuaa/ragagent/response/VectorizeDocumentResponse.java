@@ -1,4 +1,7 @@
 package com.nuaa.ragagent.response;
+/**
+ * @author jiyunhe
+ */
 
 public class VectorizeDocumentResponse {
 

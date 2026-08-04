@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+/**
+ * @author jiyunhe
+ */
 
 @Service
 public class KnowledgeSpaceServiceImpl implements KnowledgeSpaceService {

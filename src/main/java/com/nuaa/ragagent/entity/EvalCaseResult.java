@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalDateTime;
+/**
+ * @author jiyunhe
+ */
 
 @TableName("eval_case_result")
 public class EvalCaseResult {
