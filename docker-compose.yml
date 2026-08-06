@@ -51,8 +51,35 @@ services:
     volumes:
       - rag_qdrant_data:/qdrant/storage
 
+  elasticsearch:
+    build: ./docker/elasticsearch
+    container_name: rag-elasticsearch
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - rag_es_data:/usr/share/elasticsearch/data
+
+  reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    container_name: rag-reranker
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    command:
+      - "--model-id"
+      - "BAAI/bge-reranker-v2-m3"
+    volumes:
+      - rag_rerank_model:/data
+
 volumes:
   rag_mysql_data:
   rag_redis_data:
   rag_rabbitmq_data:
   rag_qdrant_data:
+  rag_es_data:
+  rag_rerank_model:

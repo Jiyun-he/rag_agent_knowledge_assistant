@@ -13,6 +13,7 @@ import com.nuaa.ragagent.request.SearchChunksRequest;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.response.VectorizeDocumentResponse;
 import com.nuaa.ragagent.service.KnowledgeEmbeddingService;
+import com.nuaa.ragagent.service.KeywordIndexService;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -52,14 +53,18 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
 
     private final VectorStore vectorStore;
 
+    private final KeywordIndexService keywordIndexService;
+
     public KnowledgeEmbeddingServiceImpl(KbSpaceMapper kbSpaceMapper,
                                          KbDocumentMapper kbDocumentMapper,
                                          KbChunkMapper kbChunkMapper,
-                                         VectorStore vectorStore) {
+                                         VectorStore vectorStore,
+                                         KeywordIndexService keywordIndexService) {
         this.kbSpaceMapper = kbSpaceMapper;
         this.kbDocumentMapper = kbDocumentMapper;
         this.kbChunkMapper = kbChunkMapper;
         this.vectorStore = vectorStore;
+        this.keywordIndexService = keywordIndexService;
     }
 
     @Override
@@ -105,6 +110,7 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
 
             try {
                 vectorStore.add(List.of(vectorDocument));
+                keywordIndexService.upsertChunk(chunk);
 
                 kbChunkMapper.update(
                         null,

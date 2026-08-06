@@ -12,6 +12,7 @@ import com.nuaa.ragagent.mapper.KbSpaceMapper;
 import com.nuaa.ragagent.request.CreateDocumentRequest;
 import com.nuaa.ragagent.request.UpdateDocumentRequest;
 import com.nuaa.ragagent.service.KnowledgeDocumentService;
+import com.nuaa.ragagent.service.KeywordIndexService;
 import com.nuaa.ragagent.util.TextChunker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +33,18 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
 
     private final TextChunker textChunker;
 
+    private final KeywordIndexService keywordIndexService;
+
     public KnowledgeDocumentServiceImpl(KbDocumentMapper kbDocumentMapper,
                                         KbSpaceMapper kbSpaceMapper,
                                         KbChunkMapper kbChunkMapper,
-                                        TextChunker textChunker) {
+                                        TextChunker textChunker,
+                                        KeywordIndexService keywordIndexService) {
         this.kbDocumentMapper = kbDocumentMapper;
         this.kbSpaceMapper = kbSpaceMapper;
         this.kbChunkMapper = kbChunkMapper;
         this.textChunker = textChunker;
+        this.keywordIndexService = keywordIndexService;
     }
 
     @Override
@@ -151,6 +156,8 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
                         .set(KbChunk::getStatus, 0)
         );
 
+        keywordIndexService.deleteByDocumentId(id);
+
         return true;
     }
 
@@ -183,6 +190,8 @@ public class KnowledgeDocumentServiceImpl implements KnowledgeDocumentService {
                 new LambdaQueryWrapper<KbChunk>()
                         .eq(KbChunk::getDocumentId, document.getId())
         );
+
+        keywordIndexService.deleteByDocumentId(document.getId());
 
         List<String> chunks = textChunker.split(document.getContent());
 
