@@ -17,6 +17,10 @@ spring:
       schema-locations: classpath:db/schema.sql
       encoding: UTF-8
       continue-on-error: false
+
+  data:
+    elasticsearch:
+      uris: http://localhost:9200
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
@@ -58,3 +62,5 @@ rag:
   chunk:
     max-size: 500
     overlap-size: 80
+  rerank:
+    base-url: http://localhost:8081

@@ -69,6 +69,12 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Elasticsearch 关键词检索（spring-boot-starter-data-elasticsearch 自动配置 co.elastic.clients 8.x） -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+		</dependency>
+
 		<!-- 测试 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
