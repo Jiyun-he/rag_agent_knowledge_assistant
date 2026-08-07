@@ -1,0 +1,170 @@
+{
+  "datasetName": "mysql-8.0-innodb-transaction-locking-zh",
+  "datasetVersion": "v1",
+  "description": "MySQL 8.0 官方英文参考手册的社区中文镜像页面，聚焦 InnoDB 事务与锁机制。每个页面对应一个 Document。",
+  "sourceSite": "https://mysql.net.cn/doc/refman/8.0/en/",
+  "officialSite": "https://dev.mysql.com/doc/refman/8.0/en/",
+  "request": {
+    "userAgent": "RAG-DatasetBuilder/1.0 (offline-eval-dataset; contact: local)",
+    "timeoutSeconds": 30,
+    "retries": 2,
+    "retryBackoffSeconds": 3,
+    "requestIntervalSeconds": 2
+  },
+  "sources": [
+    {
+      "documentKey": "innodb-multi-versioning",
+      "expectedTitle": "InnoDB 多版本",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-multi-versioning.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-multi-versioning.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locking",
+      "expectedTitle": "InnoDB 锁",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-locking.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-transaction-isolation-levels",
+      "expectedTitle": "事务隔离级别",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-transaction-isolation-levels.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-autocommit-commit-rollback",
+      "expectedTitle": "自动提交、提交和回滚",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-autocommit-commit-rollback.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-autocommit-commit-rollback.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-consistent-read",
+      "expectedTitle": "一致性非锁定读",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-consistent-read.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-consistent-read.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locking-reads",
+      "expectedTitle": "锁定读",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-locking-reads.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locking-reads.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locks-set",
+      "expectedTitle": "不同 SQL 语句设置的锁",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-locks-set.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-locks-set.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-phantom-rows",
+      "expectedTitle": "幻影行",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-next-key-locking.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-next-key-locking.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlock-example",
+      "expectedTitle": "InnoDB 死锁示例",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-deadlock-example.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlock-example.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlock-detection",
+      "expectedTitle": "死锁检测",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-deadlock-detection.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlock-detection.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlocks-handling",
+      "expectedTitle": "最小化和处理死锁",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-deadlocks-handling.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlocks-handling.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-transaction-scheduling",
+      "expectedTitle": "事务调度",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-transaction-scheduling.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-scheduling.html",
+      "enabled": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-information-schema-examples",
+      "expectedTitle": "使用 InnoDB 事务和锁信息",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-information-schema-examples.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-information-schema-examples.html",
+      "enabled": true,
+      "optional": true
+    },
+    {
+      "documentKey": "innodb-lock-wait-information",
+      "expectedTitle": "InnoDB 锁与锁等待信息",
+      "sourceVersion": "8.0",
+      "language": "zh-CN",
+      "sourceType": "community_translation",
+      "sourceUrl": "https://mysql.net.cn/doc/refman/8.0/en/innodb-information-schema-understanding-innodb-locking.html",
+      "officialUrl": "https://dev.mysql.com/doc/refman/8.0/en/innodb-information-schema-understanding-innodb-locking.html",
+      "enabled": true,
+      "optional": true
+    }
+  ]
+}

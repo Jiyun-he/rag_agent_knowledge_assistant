@@ -32,3 +32,21 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### MySQL 中文文档数据集：原始与处理后语料不入库 ###
+# 完整抓取内容默认不提交；脚本、sources.json、README、小型质量报告可提交
+dataset/mysql-innodb-zh/raw/
+dataset/mysql-innodb-zh/processed/
+dataset/mysql-innodb-zh/output/documents.jsonl
+# Python 运行时产物
+__pycache__/
+*.pyc
+.pytest_cache/
+
+### MyBatis 中文文档数据集：原始与处理后语料不入库 ###
+dataset/mybatis-3.5.19-zh/raw/
+dataset/mybatis-3.5.19-zh/processed/
+dataset/mybatis-3.5.19-zh/output/documents.jsonl
+
+### 离线源码缓存 ###
+.dataset-cache/

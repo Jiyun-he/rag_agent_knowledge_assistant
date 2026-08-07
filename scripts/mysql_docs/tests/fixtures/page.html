@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>InnoDB 锁</title>
+<style>body{color:red}</style>
+</head>
+<body>
+<div id="site-nav">
+  <nav>
+    <ul>
+      <li><a href="previous.html">上一页</a></li>
+      <li><a href="next.html">下一页</a></li>
+    </ul>
+  </nav>
+  <div class="breadcrumb"><a href="index.html">首页</a> &gt; InnoDB 锁</div>
+  <form action="/search"><input name="q" value=""></form>
+</div>
+<div class="wrap">
+  <div class="content">
+    <div class="section">
+      <h1 class="title">InnoDB 锁</h1>
+      <p>本文介绍 <code>InnoDB</code> 的锁定读取机制。锁定读取是一种 <strong>一致的非锁定读取</strong> 的相对概念，涉及下一键锁定（即 <code>下一键锁定</code>，英文 Next-Key Lock）的行级锁行为。</p>
+      <p>虚线（phantom row）问题通常与 <code>SELECT ... LOCK IN SHARE MODE</code> 相关。</p>
+      <h2>锁定读取类型</h2>
+      <ul>
+        <li>锁定读取 A</li>
+        <li>锁定读取 B</li>
+      </ul>
+      <ol>
+        <li>第一步</li>
+        <li>第二步</li>
+      </ol>
+      <table>
+        <thead><tr><th>模式</th><th>说明</th></tr></thead>
+        <tbody><tr><td>S</td><td>共享锁</td></tr></tbody>
+      </table>
+      <pre class="programlisting copytoclipboard language-sql"><code class="language-sql">-- 下一键锁定 示例
+SELECT * FROM t WHERE id = 1 LOCK IN SHARE MODE;</code></pre>
+      <div class="admonition note">
+        <p class="admonition-title">注意</p>
+        <p>这是一条提示块内容。</p>
+      </div>
+      <p><a href="innodb-multi-versioning.html">多版本</a> 相关链接。</p>
+    </div>
+  </div>
+</div>
+<footer>
+  <p>Copyright (c) 2000, 2026, Oracle and/or its affiliates.</p>
+</footer>
+<script>document.write("noise");</script>
+</body>
+</html>

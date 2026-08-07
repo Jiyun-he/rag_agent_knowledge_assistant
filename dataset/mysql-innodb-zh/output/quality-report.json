@@ -1,0 +1,965 @@
+{
+  "datasetName": "mysql-8.0-innodb-transaction-locking-zh",
+  "datasetVersion": "v1",
+  "generatedAt": "2026-08-07T01:19:27+00:00",
+  "totalDocuments": 14,
+  "passedDocuments": 14,
+  "failedMandatory": 0,
+  "failedOptional": 0,
+  "warningCount": 0,
+  "overallPass": true,
+  "documents": [
+    {
+      "documentKey": "innodb-multi-versioning",
+      "title": "InnoDB 多版本",
+      "characterCount": 1708,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=1708"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "InnoDB 多版本"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=InnoDB 多版本"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.740"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=1708"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=2"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-multi-versioning.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'一致的非锁定读取': 1}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locking",
+      "title": "InnoDB 锁定",
+      "characterCount": 5895,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=5895"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "InnoDB 锁定"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=InnoDB 锁"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.480"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=5895"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=8"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=9"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-locking.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'下一键锁': 2}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-transaction-isolation-levels",
+      "title": "事务隔离级别",
+      "characterCount": 4193,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=4193"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "事务隔离级别"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=事务隔离级别"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.429"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=4193"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-transaction-isolation-levels.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'一致的非锁定读取': 2, '锁定读取': 2, '下一键锁': 1}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-autocommit-commit-rollback",
+      "title": "自动提交、提交和回滚",
+      "characterCount": 2248,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=2248"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "自动提交、提交和回滚"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=自动提交、提交和回滚"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.307"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=2248"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=2"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=3"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-autocommit-commit-rollback.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-consistent-read",
+      "title": "一致性非锁定读",
+      "characterCount": 2791,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=2791"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "一致性非锁定读"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=一致性非锁定读"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.450"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=2791"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=3"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-consistent-read.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'一致的非锁定读取': 2, '锁定读取': 4}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locking-reads",
+      "title": "锁定读",
+      "characterCount": 3770,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=3770"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "锁定读"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=锁定读"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.455"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=3770"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=6"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=3"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-locking-reads.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'锁定读取': 17}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-locks-set",
+      "title": "InnoDB中不同SQL语句设置的锁",
+      "characterCount": 4778,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=4778"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "InnoDB中不同SQL语句设置的锁"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=不同 SQL 语句设置的锁"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.516"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=4778"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-locks-set.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'下一键锁定': 1, '下一键锁': 9, '锁定读取': 1}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-phantom-rows",
+      "title": "幻影行",
+      "characterCount": 1107,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=1107"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "幻影行"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=幻影行"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.712"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=1107"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=1"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-phantom-rows.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'虚线': 2, '下一键锁定': 2, '下一键锁': 1}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlock-example",
+      "title": "InnoDB 死锁示例",
+      "characterCount": 1013,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=1013"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "InnoDB 死锁示例"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=InnoDB 死锁示例"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.350"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=1013"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=4"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-deadlock-example.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlock-detection",
+      "title": "死锁检测",
+      "characterCount": 761,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=761"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "死锁检测"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=死锁检测"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.481"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=761"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=2"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-deadlock-detection.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-deadlocks-handling",
+      "title": "如何最小化和处理死锁",
+      "characterCount": 1577,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=1577"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "如何最小化和处理死锁"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=最小化和处理死锁"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.627"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=1577"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-deadlocks-handling.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={'锁定读取': 1}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-transaction-scheduling",
+      "title": "事务调度",
+      "characterCount": 892,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=892"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "事务调度"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=事务调度"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.542"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=892"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-transaction-scheduling.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": false
+    },
+    {
+      "documentKey": "innodb-information-schema-examples",
+      "title": "使用 InnoDB 事务和锁定信息",
+      "characterCount": 8275,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=8275"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "使用 InnoDB 事务和锁定信息"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=使用 InnoDB 事务和锁信息"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.159"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=8275"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=2"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=4"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-information-schema-examples.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": true
+    },
+    {
+      "documentKey": "innodb-lock-wait-information",
+      "title": "InnoDB 锁定和锁定等待信息",
+      "characterCount": 837,
+      "passedChecks": 14,
+      "failedChecks": 0,
+      "checks": {
+        "httpStatus200": {
+          "pass": true,
+          "detail": "http=200"
+        },
+        "bodyNonEmpty": {
+          "pass": true,
+          "detail": "len=837"
+        },
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "InnoDB 锁定和锁定等待信息"
+        },
+        "titleMatchesExpected": {
+          "pass": true,
+          "detail": "expected=InnoDB 锁与锁等待信息"
+        },
+        "containsInnoDB": {
+          "pass": true,
+          "detail": "InnoDB"
+        },
+        "zhRatioOk": {
+          "pass": true,
+          "detail": "ratio=0.535"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=837"
+        },
+        "noExcessiveNav": {
+          "pass": true,
+          "detail": "nav_hits=0"
+        },
+        "noExcessiveFooter": {
+          "pass": true,
+          "detail": "footer_hits=0"
+        },
+        "codeBlocksPreserved": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "headingLevelsReasonable": {
+          "pass": true,
+          "detail": "headings=1"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "innodb-lock-wait-information.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        },
+        "terminologyLogged": {
+          "pass": true,
+          "detail": "replacements={}"
+        }
+      },
+      "warnings": [],
+      "pass": true,
+      "optional": true
+    }
+  ]
+}
