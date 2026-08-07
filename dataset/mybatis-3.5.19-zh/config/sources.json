@@ -1,0 +1,60 @@
+{
+  "dataset": "mybatis-3.5.19-zh",
+  "datasetVersion": "v1",
+  "spaceKey": "mybatis-3.5.19-zh",
+  "sourceProject": "mybatis/mybatis-3",
+  "sourceVersion": "3.5.19",
+  "gitRef": "mybatis-3.5.19",
+  "repositoryUrl": "https://github.com/mybatis/mybatis-3",
+  "description": "MyBatis Core 官方简体中文核心参考文档，来自官方 Git 仓库固定 Tag mybatis-3.5.19 的 src/site/zh_CN 目录。",
+  "sources": [
+    {
+      "documentKey": "introduction",
+      "expectedTitle": "简介",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/",
+      "enabled": true
+    },
+    {
+      "documentKey": "getting-started",
+      "expectedTitle": "入门",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/getting-started.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "configuration",
+      "expectedTitle": "配置",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/configuration.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "sqlmap-xml",
+      "expectedTitle": "XML 映射器",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/sqlmap-xml.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "dynamic-sql",
+      "expectedTitle": "动态 SQL",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/dynamic-sql.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "java-api",
+      "expectedTitle": "Java API",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/java-api.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "statement-builders",
+      "expectedTitle": "SQL 语句构建器",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/statement-builders.html",
+      "enabled": true
+    },
+    {
+      "documentKey": "logging",
+      "expectedTitle": "日志",
+      "officialUrl": "https://mybatis.org/mybatis-3/zh_CN/logging.html",
+      "enabled": true
+    }
+  ]
+}

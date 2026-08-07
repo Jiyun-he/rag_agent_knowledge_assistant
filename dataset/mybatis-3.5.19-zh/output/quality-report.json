@@ -1,0 +1,454 @@
+{
+  "dataset": "mybatis-3.5.19-zh",
+  "datasetVersion": "v1",
+  "generatedAt": "2026-08-07T02:16:13+00:00",
+  "expectedDocuments": 8,
+  "generatedDocuments": 8,
+  "missingDocuments": [],
+  "duplicateDocuments": [],
+  "passedDocuments": 8,
+  "warningCount": 0,
+  "overallPass": true,
+  "documents": [
+    {
+      "documentKey": "introduction",
+      "title": "简介",
+      "characterCount": 508,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "简介"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=508"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=508"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.623"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=4"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=0"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=0"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=0"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "introduction.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "getting-started",
+      "title": "入门",
+      "characterCount": 7436,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "入门"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=7436"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=7436"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.405"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=11"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=24"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=0"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=12"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "getting-started.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "configuration",
+      "title": "配置",
+      "characterCount": 29277,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "配置"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=29277"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=29277"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.244"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=11"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=72"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=3"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=36"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "configuration.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "sqlmap-xml",
+      "title": "XML 映射器",
+      "characterCount": 41314,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "XML 映射器"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=41314"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=41314"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.330"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=25"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=158"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=11"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=79"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "sqlmap-xml.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "dynamic-sql",
+      "title": "动态 SQL",
+      "characterCount": 6938,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "动态 SQL"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=6938"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=6938"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.271"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=9"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=36"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=0"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=18"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "dynamic-sql.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "java-api",
+      "title": "Java API",
+      "characterCount": 23474,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "Java API"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=23474"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=23474"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.312"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=14"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=62"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=1"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=31"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "java-api.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "statement-builders",
+      "title": "SQL 语句构建器",
+      "characterCount": 9196,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "SQL 语句构建器"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=9196"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=9196"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.218"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=5"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=20"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=2"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=10"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "statement-builders.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    },
+    {
+      "documentKey": "logging",
+      "title": "日志",
+      "characterCount": 5954,
+      "passedChecks": 11,
+      "failedChecks": 0,
+      "checks": {
+        "titleNonEmpty": {
+          "pass": true,
+          "detail": "日志"
+        },
+        "contentNonEmpty": {
+          "pass": true,
+          "detail": "len=5954"
+        },
+        "lengthOk": {
+          "pass": true,
+          "detail": "len=5954"
+        },
+        "zhBodyPresent": {
+          "pass": true,
+          "detail": "ratio=0.229"
+        },
+        "headingPresent": {
+          "pass": true,
+          "detail": "headings=7"
+        },
+        "fencesBalanced": {
+          "pass": true,
+          "detail": "fences=32"
+        },
+        "tablePreserved": {
+          "pass": true,
+          "detail": "tables=0"
+        },
+        "codeBlocksIntact": {
+          "pass": true,
+          "detail": "codeBlocks=16"
+        },
+        "noTemplateGarbage": {
+          "pass": true,
+          "detail": "garbage_hits=0"
+        },
+        "markdownReadable": {
+          "pass": true,
+          "detail": "logging.md"
+        },
+        "jsonDeserializable": {
+          "pass": true,
+          "detail": "loaded from json file"
+        }
+      },
+      "warnings": [],
+      "pass": true
+    }
+  ]
+}

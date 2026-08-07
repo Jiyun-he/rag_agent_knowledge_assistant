@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>MyBatis 3 | 动态 SQL</title></head>
+<body>
+<div class="navbar">
+  <nav><a href="index.html">首页</a> | <a href="configuration.html">配置</a></nav>
+  <div class="breadcrumb">MyBatis 3 &gt; 动态 SQL</div>
+</div>
+<main class="span10">
+  <h1 class="d-none">Avoid blank site</h1>
+  <section>
+    <h1>动态 SQL</h1>
+    <p>动态 SQL 是 MyBatis 的强大特性之一。<code>if</code> 与 <code>foreach</code> 是常用元素。</p>
+    <h2>if</h2>
+    <p>根据条件包含 where 子句的一部分。比如：</p>
+    <pre class="prettyprint"><code>&lt;select id="findActiveBlogWithTitleLike"
+     resultType="Blog"&gt;
+  SELECT * FROM BLOG
+  WHERE state = 'ACTIVE'
+  &lt;if test="title != null"&gt;
+    AND title like #{title}
+  &lt;/if&gt;
+&lt;/select&gt;</code></pre>
+    <h2>foreach</h2>
+    <pre class="prettyprint"><code>SELECT *
+FROM BLOG
+WHERE id IN
+&lt;foreach item="item" index="index" collection="list"
+    open="(" separator="," close=")"&gt;
+  #{item}
+&lt;/foreach&gt;</code></pre>
+    <h2>Java 示例</h2>
+    <pre class="prettyprint"><code>SqlSession session = sqlSessionFactory.openSession();
+BlogMapper mapper = session.getMapper(BlogMapper.class);
+Blog blog = mapper.selectBlog(101);</code></pre>
+    <h2>SQL 示例</h2>
+    <pre class="prettyprint"><code>SELECT * FROM t_user WHERE name = #{name}</code></pre>
+    <h2>表格</h2>
+    <table>
+      <thead><tr><th>元素</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td>if</td><td>条件判断</td></tr>
+        <tr><td>foreach</td><td>循环</td></tr>
+      </tbody>
+    </table>
+    <p><span class="label important">提示</span> 请注意 XML 特殊字符。</p>
+  </section>
+</main>
+<footer><p>&copy; 2024 Apache Software Foundation</p></footer>
+</body>
+</html>
