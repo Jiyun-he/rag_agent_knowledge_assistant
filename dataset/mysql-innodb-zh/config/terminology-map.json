@@ -1,0 +1,10 @@
+{
+  "description": "中文术语显式规范映射。rawContent 始终保留原文；normalizedContent 仅按此表做有限替换。替换不作用于代码块，不修改 SQL 标识符。",
+  "replacements": {
+    "虚线": "幻影行",
+    "下一键锁定": "Next-Key Lock（临键锁）",
+    "下一键锁": "Next-Key Lock（临键锁）",
+    "一致的非锁定读取": "一致性非锁定读",
+    "锁定读取": "锁定读"
+  }
+}
