@@ -16,6 +16,7 @@ public interface RerankService {
      * @param query      检索问题
      * @param candidates 候选结果（须含 content）
      * @param topK       返回条数
+     * @return 重排后的 topK 条结果，按相关度降序
      */
     List<SearchChunkResponse> rerank(String query, List<SearchChunkResponse> candidates, int topK);
 }

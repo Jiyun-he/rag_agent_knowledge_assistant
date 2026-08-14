@@ -36,6 +36,7 @@ public interface KeywordIndexService {
      * @param query   检索问题
      * @param spaceId 知识库空间 ID
      * @param limit   最多返回条数
+     * @return 带 keywordScore 的检索结果列表，按相关度降序
      */
     List<SearchChunkResponse> search(String query, Long spaceId, int limit);
 

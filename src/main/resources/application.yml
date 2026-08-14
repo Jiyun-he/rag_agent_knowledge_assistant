@@ -60,7 +60,13 @@ springdoc:
 
 rag:
   chunk:
+    strategy: FIXED_SIZE
     max-size: 500
     overlap-size: 80
+    structure-aware:
+      target-size: 800
+      hard-limit: 1200
+      overlap-size: 150
+      context-max: 100
   rerank:
     base-url: http://localhost:8081
