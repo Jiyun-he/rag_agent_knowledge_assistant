@@ -205,7 +205,7 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
     private List<SearchChunkResponse> rrfFuse(List<SearchChunkResponse> vectorResults,
                                               List<SearchChunkResponse> keywordResults) {
         Map<Long, SearchChunkResponse> merged = new LinkedHashMap<>();
-        Map<Long, Double> rrfScores = new HashMap<>();
+        Map<Long, Double> rrfScores = new HashMap<>(vectorResults.size());
 
         for (int rank = 0; rank < vectorResults.size(); rank++) {
             SearchChunkResponse item = vectorResults.get(rank);

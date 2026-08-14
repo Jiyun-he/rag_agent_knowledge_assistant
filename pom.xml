@@ -91,6 +91,27 @@
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-starter-vector-store-qdrant</artifactId>
 		</dependency>
+
+		<!-- Markdown 解析：commonmark-java，用于结构感知切分前的 AST 解析 -->
+		<dependency>
+			<groupId>org.commonmark</groupId>
+			<artifactId>commonmark</artifactId>
+			<version>0.24.0</version>
+		</dependency>
+
+		<!-- Markdown 表格解析：让表格成为 Table/Row/Cell 节点 -->
+		<dependency>
+			<groupId>org.commonmark</groupId>
+			<artifactId>commonmark-ext-gfm-tables</artifactId>
+			<version>0.24.0</version>
+		</dependency>
+
+		<!-- Token 计数：tiktoken 的 Java 移植，cl100k_base，与 text-embedding-3-small 一致 -->
+		<dependency>
+			<groupId>com.knuddels</groupId>
+			<artifactId>jtokkit</artifactId>
+			<version>1.1.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
