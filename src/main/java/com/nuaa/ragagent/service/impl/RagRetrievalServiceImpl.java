@@ -1,14 +1,23 @@
 package com.nuaa.ragagent.service.impl;
 
+import com.nuaa.ragagent.enums.DocumentStatus;
 import com.nuaa.ragagent.enums.RetrievalMode;
+import com.nuaa.ragagent.entity.KbChunk;
+import com.nuaa.ragagent.entity.KbDocument;
+import com.nuaa.ragagent.entity.KbSpace;
 import com.nuaa.ragagent.exception.BusinessException;
+import com.nuaa.ragagent.mapper.KbChunkMapper;
+import com.nuaa.ragagent.mapper.KbDocumentMapper;
+import com.nuaa.ragagent.mapper.KbSpaceMapper;
 import com.nuaa.ragagent.request.SearchChunksRequest;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.service.KeywordIndexService;
 import com.nuaa.ragagent.service.KnowledgeEmbeddingService;
 import com.nuaa.ragagent.service.RagRetrievalService;
 import com.nuaa.ragagent.service.RerankService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -17,6 +26,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 /**
  * @author jiyunhe
  */
@@ -27,11 +39,8 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
     private static final int DEFAULT_TOP_K = 5;
     private static final int DEFAULT_CANDIDATE_K = 20;
 
-    /** 混合检索：每个检索器（向量、关键词）各自召回的候选数 */
-    private static final int PER_RETRIEVER_TOP_N = 50;
-
-    /** 混合检索加重排：送入重排模型的候选数 */
-    private static final int RERANK_CANDIDATE_TOP_M = 30;
+    /** 混合检索加重排：送入重排模型的候选数上限（默认值，可通过 rag.retrieval.rerank-candidate-top-m 覆盖） */
+    private static final int DEFAULT_RERANK_CANDIDATE_TOP_M = 30;
 
     /** 混合检索：最终返回条数（未显式传 topK 时） */
     private static final int FINAL_TOP_K = 10;
@@ -39,16 +48,34 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
     /** RRF（Reciprocal Rank Fusion）平滑常数 */
     private static final int RRF_K = 60;
 
+    private static final int STATUS_NORMAL = 1;
+
     private final KnowledgeEmbeddingService knowledgeEmbeddingService;
     private final KeywordIndexService keywordIndexService;
     private final RerankService rerankService;
+    private final KbChunkMapper kbChunkMapper;
+    private final KbDocumentMapper kbDocumentMapper;
+    private final KbSpaceMapper kbSpaceMapper;
+
+    /** 送入重排模型的候选数上限，可配置以便作为评测变量 */
+    private final int rerankCandidateTopM;
 
     public RagRetrievalServiceImpl(KnowledgeEmbeddingService knowledgeEmbeddingService,
                                    KeywordIndexService keywordIndexService,
-                                   RerankService rerankService) {
+                                   RerankService rerankService,
+                                   KbChunkMapper kbChunkMapper,
+                                   KbDocumentMapper kbDocumentMapper,
+                                   KbSpaceMapper kbSpaceMapper,
+                                   @Value("${rag.retrieval.rerank-candidate-top-m:30}") int rerankCandidateTopM) {
         this.knowledgeEmbeddingService = knowledgeEmbeddingService;
         this.keywordIndexService = keywordIndexService;
         this.rerankService = rerankService;
+        this.kbChunkMapper = kbChunkMapper;
+        this.kbDocumentMapper = kbDocumentMapper;
+        this.kbSpaceMapper = kbSpaceMapper;
+        this.rerankCandidateTopM = rerankCandidateTopM > 0
+                ? rerankCandidateTopM
+                : DEFAULT_RERANK_CANDIDATE_TOP_M;
     }
 
     @Override
@@ -57,12 +84,15 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
 
         RetrievalMode mode = RetrievalMode.from(request.getRetrievalMode());
 
-        return switch (mode) {
+        List<SearchChunkResponse> results = switch (mode) {
             case KEYWORD_ONLY -> searchKeywordOnly(request);
             case HYBRID -> searchHybrid(request, false);
             case HYBRID_RERANK -> searchHybrid(request, true);
             default -> searchVectorOnly(request);
         };
+
+        // 最终有效性校验：候选出来后以 MySQL 为准，chunk 存在且其 Document/Space 均有效
+        return filterValidChunks(results);
     }
 
     private void validateRequest(SearchChunksRequest request) {
@@ -153,14 +183,18 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
     /**
      * HYBRID / HYBRID_RERANK:
      * 向量召回 + 关键词召回，RRF 融合去重；可选模型重排。
+     *
+     * <p>每路召回深度由请求的 candidateK 决定（不再固定常量），使其可作为评测变量；
+     * 送入重排模型的候选数上限由 rag.retrieval.rerank-candidate-top-m 配置，与 candidateK 解耦。</p>
      */
     private List<SearchChunkResponse> searchHybrid(SearchChunksRequest request, boolean rerank) {
         int finalTopK = resolveFinalTopK(request);
+        int candidateK = Math.max(resolveTopK(request), resolveCandidateK(request));
 
-        SearchChunksRequest candidateRequest = copyForCandidateSearch(request, PER_RETRIEVER_TOP_N);
+        SearchChunksRequest candidateRequest = copyForCandidateSearch(request, candidateK);
 
         List<SearchChunkResponse> vectorResults = searchVectorOnly(candidateRequest);
-        List<SearchChunkResponse> keywordResults = searchKeywordCandidates(candidateRequest, PER_RETRIEVER_TOP_N);
+        List<SearchChunkResponse> keywordResults = searchKeywordCandidates(candidateRequest, candidateK);
 
         List<SearchChunkResponse> fused = rrfFuse(vectorResults, keywordResults);
 
@@ -170,13 +204,19 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
                     .toList();
         }
 
+        // 重排输入量取配置上限与 finalTopK 的较大者，避免 M < topK 时静默少返回
+        int rerankInputLimit = Math.max(rerankCandidateTopM, finalTopK);
         List<SearchChunkResponse> candidates = fused.stream()
-                .limit(RERANK_CANDIDATE_TOP_M)
+                .limit(rerankInputLimit)
                 .toList();
 
         return rerankService.rerank(request.getQuery(), candidates, finalTopK);
     }
 
+    /**
+     * 复制一份用于候选召回的请求，把 topK 与 candidateK 统一为给定的每路召回深度
+     * （向量侧只读 topK，关键词侧只读 limit）。
+     */
     private SearchChunksRequest copyForCandidateSearch(SearchChunksRequest request, int limit) {
         SearchChunksRequest copied = new SearchChunksRequest();
         copied.setSpaceId(request.getSpaceId());
@@ -252,11 +292,78 @@ public class RagRetrievalServiceImpl implements RagRetrievalService {
         return results;
     }
 
+    private boolean isNormal(Integer status) {
+        return status != null && STATUS_NORMAL == status;
+    }
+
     private Long getChunkId(SearchChunkResponse response) {
         if (response == null) {
             return null;
         }
 
         return response.getChunkId();
+    }
+
+    /**
+     * 以 MySQL 为准对候选结果做最终有效性校验（保持原顺序）：
+     * chunk 当前仍存在（status=1），且其 Document/Space 均处于有效状态，
+     * 且 chunk 的 document_id/space_id 与归属一致。
+     */
+    private List<SearchChunkResponse> filterValidChunks(List<SearchChunkResponse> results) {
+        if (CollectionUtils.isEmpty(results)) {
+            return results;
+        }
+
+        List<Long> chunkIds = results.stream()
+                .map(SearchChunkResponse::getChunkId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (chunkIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<KbChunk> chunks = kbChunkMapper.selectBatchIds(chunkIds);
+        Map<Long, KbChunk> chunkMap = chunks.stream()
+                .filter(c -> c != null && isNormal(c.getStatus()))
+                .collect(Collectors.toMap(KbChunk::getId, Function.identity()));
+
+        List<Long> documentIds = chunkMap.values().stream()
+                .map(KbChunk::getDocumentId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        // 检索只认已生效（ACTIVE）文档：INDEXING/FAILED 未生效不返回
+        Map<Long, KbDocument> documentMap = documentIds.isEmpty() ? Map.of()
+                : kbDocumentMapper.selectBatchIds(documentIds).stream()
+                        .filter(d -> d != null && DocumentStatus.ACTIVE.getValue() == d.getStatus())
+                        .collect(Collectors.toMap(KbDocument::getId, Function.identity()));
+
+        List<Long> spaceIds = chunkMap.values().stream()
+                .map(KbChunk::getSpaceId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<Long, KbSpace> spaceMap = spaceIds.isEmpty() ? Map.of()
+                : kbSpaceMapper.selectBatchIds(spaceIds).stream()
+                        .filter(s -> s != null && isNormal(s.getStatus()))
+                        .collect(Collectors.toMap(KbSpace::getId, Function.identity()));
+
+        return results.stream()
+                .filter(r -> {
+                    KbChunk chunk = chunkMap.get(r.getChunkId());
+                    if (chunk == null) {
+                        return false;
+                    }
+
+                    KbDocument document = documentMap.get(chunk.getDocumentId());
+                    if (document == null || !chunk.getSpaceId().equals(document.getSpaceId())) {
+                        return false;
+                    }
+
+                    return spaceMap.containsKey(chunk.getSpaceId());
+                })
+                .toList();
     }
 }

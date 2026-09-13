@@ -15,10 +15,6 @@ public class StartEvalRunRequest {
 
     private Integer candidateK;
 
-    private Double vectorWeight;
-
-    private Double keywordWeight;
-
     private Boolean enableAnswerGeneration;
 
     public Long getDatasetId() {
@@ -63,24 +59,6 @@ public class StartEvalRunRequest {
 
     public StartEvalRunRequest setCandidateK(Integer candidateK) {
         this.candidateK = candidateK;
-        return this;
-    }
-
-    public Double getVectorWeight() {
-        return vectorWeight;
-    }
-
-    public StartEvalRunRequest setVectorWeight(Double vectorWeight) {
-        this.vectorWeight = vectorWeight;
-        return this;
-    }
-
-    public Double getKeywordWeight() {
-        return keywordWeight;
-    }
-
-    public StartEvalRunRequest setKeywordWeight(Double keywordWeight) {
-        this.keywordWeight = keywordWeight;
         return this;
     }
 
