@@ -35,8 +35,16 @@ public class EvalCaseResult {
 
     private Double answerKeywordHit;
 
-    private Integer citationCorrect;
+    /** 从回答中解析到的有效 [Reference N] 个数；未生成回答时为 null */
+    private Integer citationCount;
 
+    /** 引用精确率 = |引用∩期望| / |引用|；未生成回答或无有效引用时为 null */
+    private Double citationPrecision;
+
+    /** 引用召回率 = |引用∩期望| / |期望|；未生成回答或期望为空时为 null */
+    private Double citationRecall;
+
+    /** 引用未编造（有引用且无越界引用）为 1，否则 0；未生成回答时为 null */
     private Integer grounded;
 
     private Long latencyMs;
@@ -146,12 +154,30 @@ public class EvalCaseResult {
         return this;
     }
 
-    public Integer getCitationCorrect() {
-        return citationCorrect;
+    public Integer getCitationCount() {
+        return citationCount;
     }
 
-    public EvalCaseResult setCitationCorrect(Integer citationCorrect) {
-        this.citationCorrect = citationCorrect;
+    public EvalCaseResult setCitationCount(Integer citationCount) {
+        this.citationCount = citationCount;
+        return this;
+    }
+
+    public Double getCitationPrecision() {
+        return citationPrecision;
+    }
+
+    public EvalCaseResult setCitationPrecision(Double citationPrecision) {
+        this.citationPrecision = citationPrecision;
+        return this;
+    }
+
+    public Double getCitationRecall() {
+        return citationRecall;
+    }
+
+    public EvalCaseResult setCitationRecall(Double citationRecall) {
+        this.citationRecall = citationRecall;
         return this;
     }
 

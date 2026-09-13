@@ -19,10 +19,6 @@ public class EvalRunResponse {
 
     private Integer candidateK;
 
-    private Double vectorWeight;
-
-    private Double keywordWeight;
-
     private Boolean enableAnswerGeneration;
 
     private Integer status;
@@ -41,7 +37,14 @@ public class EvalRunResponse {
 
     private Double avgAnswerKeywordHit;
 
-    private Double citationCorrectRate;
+    /** 引用精确率均值（仅统计生成了回答的 case）；无此类 case 时为 null */
+    private Double avgCitationPrecision;
+
+    /** 引用召回率均值（仅统计生成了回答的 case）；无此类 case 时为 null */
+    private Double avgCitationRecall;
+
+    /** 引用未编造比例（仅统计生成了回答的 case）；无此类 case 时为 null */
+    private Double groundedRate;
 
     private Double avgLatencyMs;
 
@@ -102,24 +105,6 @@ public class EvalRunResponse {
 
     public EvalRunResponse setCandidateK(Integer candidateK) {
         this.candidateK = candidateK;
-        return this;
-    }
-
-    public Double getVectorWeight() {
-        return vectorWeight;
-    }
-
-    public EvalRunResponse setVectorWeight(Double vectorWeight) {
-        this.vectorWeight = vectorWeight;
-        return this;
-    }
-
-    public Double getKeywordWeight() {
-        return keywordWeight;
-    }
-
-    public EvalRunResponse setKeywordWeight(Double keywordWeight) {
-        this.keywordWeight = keywordWeight;
         return this;
     }
 
@@ -204,12 +189,30 @@ public class EvalRunResponse {
         return this;
     }
 
-    public Double getCitationCorrectRate() {
-        return citationCorrectRate;
+    public Double getAvgCitationPrecision() {
+        return avgCitationPrecision;
     }
 
-    public EvalRunResponse setCitationCorrectRate(Double citationCorrectRate) {
-        this.citationCorrectRate = citationCorrectRate;
+    public EvalRunResponse setAvgCitationPrecision(Double avgCitationPrecision) {
+        this.avgCitationPrecision = avgCitationPrecision;
+        return this;
+    }
+
+    public Double getAvgCitationRecall() {
+        return avgCitationRecall;
+    }
+
+    public EvalRunResponse setAvgCitationRecall(Double avgCitationRecall) {
+        this.avgCitationRecall = avgCitationRecall;
+        return this;
+    }
+
+    public Double getGroundedRate() {
+        return groundedRate;
+    }
+
+    public EvalRunResponse setGroundedRate(Double groundedRate) {
+        this.groundedRate = groundedRate;
         return this;
     }
 

@@ -27,7 +27,14 @@ public class EvalCaseResultResponse {
 
     private Double answerKeywordHit;
 
-    private Integer citationCorrect;
+    /** 从回答解析到的有效 [Reference N] 个数；未生成回答时为 null */
+    private Integer citationCount;
+
+    /** 引用精确率；未生成回答时 null，回答无引用时 0.0 */
+    private Double citationPrecision;
+
+    /** 引用召回率；未生成回答或期望为空时 null */
+    private Double citationRecall;
 
     private Integer grounded;
 
@@ -134,12 +141,30 @@ public class EvalCaseResultResponse {
         return this;
     }
 
-    public Integer getCitationCorrect() {
-        return citationCorrect;
+    public Integer getCitationCount() {
+        return citationCount;
     }
 
-    public EvalCaseResultResponse setCitationCorrect(Integer citationCorrect) {
-        this.citationCorrect = citationCorrect;
+    public EvalCaseResultResponse setCitationCount(Integer citationCount) {
+        this.citationCount = citationCount;
+        return this;
+    }
+
+    public Double getCitationPrecision() {
+        return citationPrecision;
+    }
+
+    public EvalCaseResultResponse setCitationPrecision(Double citationPrecision) {
+        this.citationPrecision = citationPrecision;
+        return this;
+    }
+
+    public Double getCitationRecall() {
+        return citationRecall;
+    }
+
+    public EvalCaseResultResponse setCitationRecall(Double citationRecall) {
+        this.citationRecall = citationRecall;
         return this;
     }
 

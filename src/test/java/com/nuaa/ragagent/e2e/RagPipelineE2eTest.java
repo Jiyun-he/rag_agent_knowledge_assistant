@@ -10,11 +10,11 @@ import com.nuaa.ragagent.request.CreateEvalCaseRequest;
 import com.nuaa.ragagent.request.CreateEvalDatasetRequest;
 import com.nuaa.ragagent.request.CreateSpaceRequest;
 import com.nuaa.ragagent.request.StartEvalRunRequest;
-import com.nuaa.ragagent.response.EmbeddingTaskResponse;
 import com.nuaa.ragagent.response.EvalCaseResponse;
 import com.nuaa.ragagent.response.EvalDatasetResponse;
 import com.nuaa.ragagent.response.EvalRunCompareResponse;
 import com.nuaa.ragagent.response.EvalRunResponse;
+import com.nuaa.ragagent.response.IndexTaskResponse;
 import com.nuaa.ragagent.service.KeywordIndexService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,7 +41,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 端到端测试：文档入库 → 分块 → 异步向量化 → 构建评测集 → 四种检索模式评测 → 对比。
+ * 端到端测试：文档入库 → 分块 → 异步索引构建（BUILD_INDEX 任务）→ 构建评测集 → 四种检索模式评测 → 对比。
  *
  * <p>复用 docker-compose 服务（MySQL/Qdrant/ES/TEI），用 {@link TestAiConfiguration} 的
  * fake EmbeddingModel/ChatModel 替代真实 OpenAI 调用。测试用独立空间名，结束后物理清理
@@ -57,7 +57,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RagPipelineE2eTest {
 
-    private static final int EMBEDDING_TASK_STATUS_SUCCESS = 2;
+    private static final int TASK_STATUS_SUCCESS = 3;
+
+    private static final int TASK_STATUS_FAILED = 4;
 
     private static final int EMBEDDING_STATUS_DONE = 1;
 
@@ -77,8 +79,8 @@ class RagPipelineE2eTest {
 
     // 测试文档内容（文本切分参数 maxSize=500 / overlap=80 来自 application.yml）
     private static final String DOC1_CONTENT =
-            "异步向量化任务用于管理文档向量化过程，记录任务状态、成功数量、失败数量、开始时间和结束时间。"
-                    + "EmbeddingTaskServiceImpl 负责创建任务并异步执行向量化，完成后更新 kb_embedding_task 表。";
+            "持久化索引任务用于管理文档索引构建过程，记录任务状态、成功数量、失败数量、开始时间和结束时间。"
+                    + "IndexTaskService 负责登记任务并由 worker 异步执行，完成后更新 kb_index_task 表。";
 
     private static final String DOC2_CONTENT =
             "关键词检索基于 Elasticsearch 的 smartcn 中文分词实现，适合类名、方法名、接口路径等精确匹配场景。"
@@ -150,17 +152,49 @@ class RagPipelineE2eTest {
         return resp.getData().getId();
     }
 
-    // ---------- 阶段 3：分块断言 + 收集真实 chunkId ----------
+    // ---------- 阶段 3：等待自动登记的 BUILD_INDEX 任务完成 + 收集索引化 chunk ----------
+    // 文档创建后事务提交即自动登记 BUILD_INDEX 任务，由 worker 异步执行，这里轮询等待其成功。
 
     @Test
     @Order(3)
-    void assertChunks() {
-        doc1ChunkIds.addAll(assertDocumentChunks(docIds.get(0), 1, DOC1_CONTENT));
-        doc2ChunkIds.addAll(assertDocumentChunks(docIds.get(1), 1, DOC2_CONTENT));
-        doc3ChunkIds.addAll(assertDocumentChunks(docIds.get(2), 2, DOC3_CONTENT));
+    void waitIndexAndCollectChunks() {
+        for (Long docId : docIds) {
+            waitForBuildTaskSuccess(docId);
+        }
+        doc1ChunkIds.addAll(collectIndexedChunks(docIds.get(0), 1, DOC1_CONTENT));
+        doc2ChunkIds.addAll(collectIndexedChunks(docIds.get(1), 1, DOC2_CONTENT));
+        doc3ChunkIds.addAll(collectIndexedChunks(docIds.get(2), 2, DOC3_CONTENT));
     }
 
-    private List<Long> assertDocumentChunks(Long docId, int expectedCount, String fullContent) {
+    private void waitForBuildTaskSuccess(Long docId) {
+        long deadline = System.currentTimeMillis() + 120_000;
+        int delayMs = 500;
+        while (System.currentTimeMillis() < deadline) {
+            ApiResponse<List<IndexTaskResponse>> resp = get("/api/rag/documents/" + docId + "/index-tasks",
+                    new ParameterizedTypeReference<>() {
+                    });
+            assertThat(resp.getCode()).isZero();
+            List<IndexTaskResponse> tasks = resp.getData();
+            if (tasks == null || tasks.isEmpty()) {
+                sleep(delayMs);
+                delayMs = Math.min(delayMs * 2, 4000);
+                continue;
+            }
+            IndexTaskResponse task = tasks.get(0);
+            int status = task.getStatus();
+            if (status == TASK_STATUS_SUCCESS) {
+                return;
+            }
+            if (status == TASK_STATUS_FAILED) {
+                throw new AssertionError("索引任务失败: " + task.getErrorMessage());
+            }
+            sleep(delayMs);
+            delayMs = Math.min(delayMs * 2, 4000);
+        }
+        throw new AssertionError("等待索引任务超时: documentId=" + docId);
+    }
+
+    private List<Long> collectIndexedChunks(Long docId, int expectedCount, String fullContent) {
         ApiResponse<List<KbChunk>> resp = get("/api/documents/" + docId + "/chunks",
                 new ParameterizedTypeReference<>() {
                 });
@@ -175,57 +209,11 @@ class RagPipelineE2eTest {
             assertThat(chunk.getContent()).isEqualTo(
                     fullContent.substring(i * 420, Math.min(i * 420 + 500, fullContent.length())));
             assertThat(chunk.getCharCount()).isEqualTo(chunk.getContent().length());
-            assertThat(chunk.getEmbeddingStatus()).isZero();
+            assertThat(chunk.getEmbeddingStatus()).isEqualTo(EMBEDDING_STATUS_DONE);
+            assertThat(chunk.getVectorId()).isNotNull();
             chunkIds.add(chunk.getId());
         }
         return chunkIds;
-    }
-
-    // ---------- 阶段 4：异步向量化 + 轮询完成 ----------
-
-    @Test
-    @Order(4)
-    void vectorizeAndWait() {
-        for (Long docId : docIds) {
-            ApiResponse<EmbeddingTaskResponse> resp = post(
-                    "/api/rag/documents/" + docId + "/vectorize-async",
-                    null,
-                    new ParameterizedTypeReference<>() {
-                    });
-            assertThat(resp.getCode()).isZero();
-            waitForTaskSuccess(resp.getData().getTaskId());
-        }
-
-        for (Long docId : docIds) {
-            ApiResponse<List<KbChunk>> resp = get("/api/documents/" + docId + "/chunks",
-                    new ParameterizedTypeReference<>() {
-                    });
-            for (KbChunk chunk : resp.getData()) {
-                assertThat(chunk.getEmbeddingStatus()).isEqualTo(EMBEDDING_STATUS_DONE);
-                assertThat(chunk.getVectorId()).isNotNull();
-            }
-        }
-    }
-
-    private void waitForTaskSuccess(Long taskId) {
-        long deadline = System.currentTimeMillis() + 120_000;
-        int delayMs = 500;
-        while (System.currentTimeMillis() < deadline) {
-            ApiResponse<EmbeddingTaskResponse> resp = get("/api/rag/embedding-tasks/" + taskId,
-                    new ParameterizedTypeReference<>() {
-                    });
-            assertThat(resp.getCode()).isZero();
-            int status = resp.getData().getStatus();
-            if (status == EMBEDDING_TASK_STATUS_SUCCESS) {
-                return;
-            }
-            if (status == 3) {
-                throw new AssertionError("向量化任务失败: " + resp.getData().getErrorMessage());
-            }
-            sleep(delayMs);
-            delayMs = Math.min(delayMs * 2, 4000);
-        }
-        throw new AssertionError("向量化任务超时: taskId=" + taskId);
     }
 
     // ---------- 阶段 5：构建评测集与评测 case ----------
@@ -275,15 +263,14 @@ class RagPipelineE2eTest {
     @Order(6)
     void startFourRuns() {
         runIds.clear();
-        runIds.add(startRun("itest-vector-only", "VECTOR_ONLY", null, null, false));
-        runIds.add(startRun("itest-keyword-only", "KEYWORD_ONLY", null, null, false));
-        runIds.add(startRun("itest-hybrid", "HYBRID", 0.6, 0.4, false));
-        runIds.add(startRun("itest-hybrid-rerank", "HYBRID_RERANK", 0.6, 0.4, true));
+        runIds.add(startRun("itest-vector-only", "VECTOR_ONLY", false));
+        runIds.add(startRun("itest-keyword-only", "KEYWORD_ONLY", false));
+        runIds.add(startRun("itest-hybrid", "HYBRID", false));
+        runIds.add(startRun("itest-hybrid-rerank", "HYBRID_RERANK", true));
         assertThat(runIds).hasSize(4);
     }
 
-    private Long startRun(String runName, String retrievalMode,
-                          Double vectorWeight, Double keywordWeight, boolean enableAnswerGeneration) {
+    private Long startRun(String runName, String retrievalMode, boolean enableAnswerGeneration) {
         ApiResponse<EvalRunResponse> resp = post("/api/rag/eval/runs",
                 new StartEvalRunRequest()
                         .setDatasetId(datasetId)
@@ -291,8 +278,6 @@ class RagPipelineE2eTest {
                         .setRetrievalMode(retrievalMode)
                         .setTopK(5)
                         .setCandidateK(20)
-                        .setVectorWeight(vectorWeight)
-                        .setKeywordWeight(keywordWeight)
                         .setEnableAnswerGeneration(enableAnswerGeneration),
                 new ParameterizedTypeReference<>() {
                 });
@@ -315,9 +300,18 @@ class RagPipelineE2eTest {
             assertThat(run.getAvgRecallAtK()).isNotNull().isGreaterThan(0.0);
             assertThat(run.getHitRateAtK()).isNotNull().isGreaterThan(0.0);
         }
-        // 最后一个 run 开启了回答生成，应产出 Answer Keyword Hit 指标
+        // 未开启回答生成的 run：回答类指标不适用，应为 null（而不是 0）
+        EvalRunResponse noAnswerRun = getRun(runIds.get(0));
+        assertThat(noAnswerRun.getAvgAnswerKeywordHit()).isNull();
+        assertThat(noAnswerRun.getAvgCitationPrecision()).isNull();
+        assertThat(noAnswerRun.getGroundedRate()).isNull();
+
+        // 最后一个 run 开启了回答生成，应产出 Answer Keyword Hit 与引用类指标
         EvalRunResponse lastRun = getRun(runIds.get(3));
         assertThat(lastRun.getAvgAnswerKeywordHit()).isNotNull().isGreaterThan(0.0);
+        assertThat(lastRun.getAvgCitationPrecision()).isNotNull();
+        assertThat(lastRun.getAvgCitationRecall()).isNotNull();
+        assertThat(lastRun.getGroundedRate()).isNotNull();
     }
 
     private EvalRunResponse getRun(Long runId) {
@@ -368,7 +362,7 @@ class RagPipelineE2eTest {
         jdbcTemplate.update("DELETE FROM eval_run WHERE dataset_id IN (SELECT id FROM eval_dataset WHERE space_id = ?)", spaceId);
         jdbcTemplate.update("DELETE FROM eval_case WHERE dataset_id IN (SELECT id FROM eval_dataset WHERE space_id = ?)", spaceId);
         jdbcTemplate.update("DELETE FROM eval_dataset WHERE space_id = ?", spaceId);
-        jdbcTemplate.update("DELETE FROM kb_embedding_task WHERE space_id = ?", spaceId);
+        jdbcTemplate.update("DELETE FROM kb_index_task WHERE space_id = ?", spaceId);
         jdbcTemplate.update("DELETE FROM qa_reference WHERE session_id IN (SELECT id FROM qa_session WHERE space_id = ?)", spaceId);
         jdbcTemplate.update("DELETE FROM qa_message WHERE session_id IN (SELECT id FROM qa_session WHERE space_id = ?)", spaceId);
         jdbcTemplate.update("DELETE FROM qa_session WHERE space_id = ?", spaceId);

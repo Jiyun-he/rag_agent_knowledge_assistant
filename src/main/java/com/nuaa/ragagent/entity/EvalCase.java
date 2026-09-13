@@ -19,6 +19,10 @@ public class EvalCase {
 
     private String question;
 
+    /**
+     * 参考答案。预留字段：当前仅存储与展示，**不参与任何评分**——
+     * 回答质量评测（LLM-as-a-Judge 等）尚未实现，问答侧目前只算 Answer Keyword Hit 与引用指标。
+     */
     private String expectedAnswer;
 
     private String expectedChunkIds;
