@@ -1,6 +1,12 @@
 package com.nuaa.ragagent.service.impl;
 
+import com.nuaa.ragagent.entity.KbChunk;
+import com.nuaa.ragagent.entity.KbDocument;
+import com.nuaa.ragagent.entity.KbSpace;
 import com.nuaa.ragagent.exception.BusinessException;
+import com.nuaa.ragagent.mapper.KbChunkMapper;
+import com.nuaa.ragagent.mapper.KbDocumentMapper;
+import com.nuaa.ragagent.mapper.KbSpaceMapper;
 import com.nuaa.ragagent.request.SearchChunksRequest;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.service.KeywordIndexService;
@@ -23,11 +29,15 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RagRetrievalServiceImplTest {
+
+    /** 与 application.yml 中 rag.retrieval.rerank-candidate-top-m 的默认值保持一致 */
+    private static final int RERANK_CANDIDATE_TOP_M = 30;
 
     @Mock
     private KnowledgeEmbeddingService embeddingService;
@@ -38,11 +48,60 @@ class RagRetrievalServiceImplTest {
     @Mock
     private RerankService rerankService;
 
+    @Mock
+    private KbChunkMapper kbChunkMapper;
+
+    @Mock
+    private KbDocumentMapper kbDocumentMapper;
+
+    @Mock
+    private KbSpaceMapper kbSpaceMapper;
+
     private RagRetrievalServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new RagRetrievalServiceImpl(embeddingService, keywordIndexService, rerankService);
+        service = new RagRetrievalServiceImpl(embeddingService, keywordIndexService, rerankService,
+                kbChunkMapper, kbDocumentMapper, kbSpaceMapper, RERANK_CANDIDATE_TOP_M);
+        stubValidChunks();
+    }
+
+    /**
+     * 默认 stub：任何 chunkId 对应的 chunk/document/space 均视为有效（status=1，归属 1L 空间），
+     * 使检索候选通过最终的 MySQL 有效性校验，隔离本测试关注点。
+     */
+    private void stubValidChunks() {
+        // 校验失败/空结果用例不触发 mapper 查询，需用 lenient 避免 UnnecessaryStubbing
+        lenient().when(kbChunkMapper.selectBatchIds(anyList())).thenAnswer(inv -> {
+            List<Long> ids = inv.getArgument(0);
+            return ids.stream().map(id -> {
+                KbChunk chunk = new KbChunk();
+                chunk.setId(id);
+                chunk.setDocumentId(1L);
+                chunk.setSpaceId(1L);
+                chunk.setStatus(1);
+                return chunk;
+            }).toList();
+        });
+        lenient().when(kbDocumentMapper.selectBatchIds(anyList())).thenAnswer(inv -> {
+            List<Long> ids = inv.getArgument(0);
+            return ids.stream().map(id -> {
+                KbDocument document = new KbDocument();
+                document.setId(id);
+                document.setSpaceId(1L);
+                document.setStatus(1);
+                return document;
+            }).toList();
+        });
+        lenient().when(kbSpaceMapper.selectBatchIds(anyList())).thenAnswer(inv -> {
+            List<Long> ids = inv.getArgument(0);
+            return ids.stream().map(id -> {
+                KbSpace space = new KbSpace();
+                space.setId(id);
+                space.setStatus(1);
+                return space;
+            }).toList();
+        });
     }
 
     // ---------- 参数校验 ----------
@@ -131,6 +190,28 @@ class RagRetrievalServiceImplTest {
         assertThat(limitCaptor.getValue()).isEqualTo(8);
     }
 
+    @Test
+    void search_filtersInvalidChunksByMysql() {
+        when(keywordIndexService.search(anyString(), eq(1L), anyInt())).thenReturn(List.of(
+                keywordItem(1L, 0.9), keywordItem(2L, 0.8)));
+        // chunk2 在 MySQL 中已不存在（视为失效），chunk1 有效
+        when(kbChunkMapper.selectBatchIds(anyList())).thenAnswer(inv -> {
+            List<Long> ids = inv.getArgument(0);
+            return ids.stream().filter(id -> id.equals(1L)).map(id -> {
+                KbChunk chunk = new KbChunk();
+                chunk.setId(id);
+                chunk.setDocumentId(1L);
+                chunk.setSpaceId(1L);
+                chunk.setStatus(1);
+                return chunk;
+            }).toList();
+        });
+
+        List<SearchChunkResponse> result = service.search(req(1L, "q", "KEYWORD_ONLY", 5, null));
+
+        assertThat(result).extracting(SearchChunkResponse::getChunkId).containsExactly(1L);
+    }
+
     // ---------- HYBRID / RRF ----------
 
     @Test
@@ -160,6 +241,52 @@ class RagRetrievalServiceImplTest {
 
     // ---------- HYBRID_RERANK ----------
 
+    @Test
+    void search_hybrid_candidateKControlsPerRetrieverRecallDepth() {
+        // 修复前 HYBRID 固定每路召回 50，candidateK 传什么都一样（伪实验参数）；
+        // 现在每路召回深度必须由 candidateK 决定
+        when(embeddingService.searchChunks(any())).thenReturn(List.of(vectorItem(1L, 0.5)));
+        when(keywordIndexService.search(anyString(), any(), anyInt())).thenReturn(List.of());
+
+        service.search(req(1L, "q", "HYBRID", 5, 40));
+
+        ArgumentCaptor<SearchChunksRequest> vectorCaptor = ArgumentCaptor.forClass(SearchChunksRequest.class);
+        verify(embeddingService).searchChunks(vectorCaptor.capture());
+        assertThat(vectorCaptor.getValue().getTopK()).isEqualTo(40);
+
+        ArgumentCaptor<Integer> keywordLimitCaptor = ArgumentCaptor.forClass(Integer.class);
+        verify(keywordIndexService).search(anyString(), any(), keywordLimitCaptor.capture());
+        assertThat(keywordLimitCaptor.getValue()).isEqualTo(40);
+    }
+
+    @Test
+    void search_hybrid_candidateKBelowTopK_usesTopKAsRecallDepth() {
+        when(embeddingService.searchChunks(any())).thenReturn(List.of(vectorItem(1L, 0.5)));
+        when(keywordIndexService.search(anyString(), any(), anyInt())).thenReturn(List.of());
+
+        service.search(req(1L, "q", "HYBRID", 8, 3));
+
+        ArgumentCaptor<SearchChunksRequest> vectorCaptor = ArgumentCaptor.forClass(SearchChunksRequest.class);
+        verify(embeddingService).searchChunks(vectorCaptor.capture());
+        assertThat(vectorCaptor.getValue().getTopK()).isEqualTo(8);
+    }
+
+    @Test
+    void search_hybridRerank_rerankInputLimitRaisesToFinalTopKWhenTopKExceedsIt() {
+        // topK(50) 大于重排输入上限(30) 时，输入量应抬到 50，否则会静默少返回
+        List<SearchChunkResponse> manyVectors = java.util.stream.IntStream.rangeClosed(1, 60)
+                .mapToObj(i -> vectorItem((long) i, 0.5))
+                .toList();
+        when(embeddingService.searchChunks(any())).thenReturn(manyVectors);
+        when(keywordIndexService.search(anyString(), any(), anyInt())).thenReturn(List.of());
+        when(rerankService.rerank(eq("q"), anyList(), eq(50))).thenReturn(List.of(vectorItem(9L, 1.0)));
+
+        service.search(req(1L, "q", "HYBRID_RERANK", 50, 60));
+
+        ArgumentCaptor<List<SearchChunkResponse>> candidatesCaptor = ArgumentCaptor.forClass(List.class);
+        verify(rerankService).rerank(eq("q"), candidatesCaptor.capture(), eq(50));
+        assertThat(candidatesCaptor.getValue()).hasSize(50);
+    }
     @Test
     void search_hybridRerank_limitsCandidatesAndDelegatesToRerank() {
         List<SearchChunkResponse> manyVectors = java.util.stream.IntStream.rangeClosed(1, 35)

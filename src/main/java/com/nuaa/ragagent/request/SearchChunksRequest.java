@@ -22,10 +22,6 @@ public class SearchChunksRequest {
 
     private Integer candidateK;
 
-    private Double vectorWeight;
-
-    private Double keywordWeight;
-
     public Long getSpaceId() {
         return spaceId;
     }
@@ -65,24 +61,6 @@ public class SearchChunksRequest {
 
     public SearchChunksRequest setRetrievalMode(String retrievalMode) {
         this.retrievalMode = retrievalMode;
-        return this;
-    }
-
-    public Double getVectorWeight() {
-        return vectorWeight;
-    }
-
-    public SearchChunksRequest setVectorWeight(Double vectorWeight) {
-        this.vectorWeight = vectorWeight;
-        return this;
-    }
-
-    public Double getKeywordWeight() {
-        return keywordWeight;
-    }
-
-    public SearchChunksRequest setKeywordWeight(Double keywordWeight) {
-        this.keywordWeight = keywordWeight;
         return this;
     }
 }

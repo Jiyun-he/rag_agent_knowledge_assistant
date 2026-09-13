@@ -17,10 +17,6 @@ public class AskRequest {
 
     private Integer candidateK;
 
-    private Double vectorWeight;
-
-    private Double keywordWeight;
-
     public Long getSpaceId() {
         return spaceId;
     }
@@ -72,24 +68,6 @@ public class AskRequest {
 
     public AskRequest setCandidateK(Integer candidateK) {
         this.candidateK = candidateK;
-        return this;
-    }
-
-    public Double getVectorWeight() {
-        return vectorWeight;
-    }
-
-    public AskRequest setVectorWeight(Double vectorWeight) {
-        this.vectorWeight = vectorWeight;
-        return this;
-    }
-
-    public Double getKeywordWeight() {
-        return keywordWeight;
-    }
-
-    public AskRequest setKeywordWeight(Double keywordWeight) {
-        this.keywordWeight = keywordWeight;
         return this;
     }
 }

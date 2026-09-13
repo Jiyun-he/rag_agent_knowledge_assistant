@@ -97,8 +97,6 @@ public class RagQaServiceImpl implements RagQaService {
 
         searchRequest.setRetrievalMode(request.getRetrievalMode());
         searchRequest.setCandidateK(request.getCandidateK());
-        searchRequest.setVectorWeight(request.getVectorWeight());
-        searchRequest.setKeywordWeight(request.getKeywordWeight());
 
         return searchRequest;
     }
