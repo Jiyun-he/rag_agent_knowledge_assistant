@@ -23,6 +23,7 @@ import com.nuaa.ragagent.response.EvalRunResponse;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.service.RagEvaluationService;
 import com.nuaa.ragagent.service.RagRetrievalService;
+import com.nuaa.ragagent.util.CitationParser;
 import com.nuaa.ragagent.util.RagPromptBuilder;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
     private final ChatClient chatClient;
     private final RagPromptBuilder ragPromptBuilder;
     private final ObjectMapper objectMapper;
+    private final CitationParser citationParser;
 
     public RagEvaluationServiceImpl(EvalDatasetMapper evalDatasetMapper,
                                     EvalCaseMapper evalCaseMapper,
@@ -77,7 +79,8 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                                     RagRetrievalService ragRetrievalService,
                                     ChatClient chatClient,
                                     RagPromptBuilder ragPromptBuilder,
-                                    ObjectMapper objectMapper) {
+                                    ObjectMapper objectMapper,
+                                    CitationParser citationParser) {
         this.evalDatasetMapper = evalDatasetMapper;
         this.evalCaseMapper = evalCaseMapper;
         this.evalRunMapper = evalRunMapper;
@@ -86,6 +89,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         this.chatClient = chatClient;
         this.ragPromptBuilder = ragPromptBuilder;
         this.objectMapper = objectMapper;
+        this.citationParser = citationParser;
     }
 
     @Override
@@ -252,12 +256,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         int successCount = 0;
         int failedCount = 0;
 
-        double totalRecall = 0.0;
-        double totalHit = 0.0;
-        double totalMrr = 0.0;
-        double totalAnswerKeywordHit = 0.0;
-        double totalCitationCorrect = 0.0;
-        double totalLatencyMs = 0.0;
+        RunMetricsAccumulator metrics = new RunMetricsAccumulator();
 
         try {
             run.setStatus(RUN_STATUS_RUNNING);
@@ -272,27 +271,13 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
 
                 if (result.getErrorMessage() == null) {
                     successCount++;
-
-                    totalRecall += safeDouble(result.getRecallAtK());
-                    totalHit += safeInt(result.getHitAtK());
-                    totalMrr += safeDouble(result.getMrr());
-                    totalAnswerKeywordHit += safeDouble(result.getAnswerKeywordHit());
-                    totalCitationCorrect += safeInt(result.getCitationCorrect());
-                    totalLatencyMs += safeLong(result.getLatencyMs());
+                    metrics.add(result);
                 } else {
                     failedCount++;
                 }
             }
 
-            fillRunSummary(run,
-                    successCount,
-                    failedCount,
-                    totalRecall,
-                    totalHit,
-                    totalMrr,
-                    totalAnswerKeywordHit,
-                    totalCitationCorrect,
-                    totalLatencyMs);
+            fillRunSummary(run, successCount, failedCount, metrics);
 
             evalRunMapper.updateById(run);
 
@@ -358,8 +343,6 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
             searchRequest.setRetrievalMode(run.getRetrievalMode());
             searchRequest.setTopK(run.getTopK());
             searchRequest.setCandidateK(run.getCandidateK());
-            searchRequest.setVectorWeight(run.getVectorWeight());
-            searchRequest.setKeywordWeight(run.getKeywordWeight());
 
             List<SearchChunkResponse> retrievedChunks = ragRetrievalService.search(searchRequest);
             List<Long> retrievedChunkIds = extractChunkIds(retrievedChunks);
@@ -372,9 +355,7 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
             double recallAtK = calculateRecallAtK(expectedChunkIds, retrievedChunkIds);
             int hitAtK = calculateHitAtK(expectedChunkIds, retrievedChunkIds);
             double mrr = calculateMrr(expectedChunkIds, retrievedChunkIds);
-            double answerKeywordHit = calculateAnswerKeywordHit(answer, expectedKeywords);
-            int citationCorrect = calculateCitationCorrect(expectedChunkIds, retrievedChunkIds);
-            int grounded = retrievedChunks == null || retrievedChunks.isEmpty() ? 0 : 1;
+            CitationMetrics citation = evaluateCitations(answer, retrievedChunks, expectedChunkIds);
 
             long latencyMs = System.currentTimeMillis() - startTime;
 
@@ -383,9 +364,14 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
             result.setRecallAtK(recallAtK);
             result.setHitAtK(hitAtK);
             result.setMrr(mrr);
-            result.setAnswerKeywordHit(answerKeywordHit);
-            result.setCitationCorrect(citationCorrect);
-            result.setGrounded(grounded);
+            // 回答类指标：未生成回答时为 null（不适用），汇总时不计入平均
+            result.setAnswerKeywordHit(answer == null
+                    ? null
+                    : calculateAnswerKeywordHit(answer, expectedKeywords));
+            result.setCitationCount(citation.citationCount());
+            result.setCitationPrecision(citation.precision());
+            result.setCitationRecall(citation.recall());
+            result.setGrounded(citation.grounded());
             result.setLatencyMs(latencyMs);
             result.setCreatedAt(LocalDateTime.now());
             result.setUpdatedAt(LocalDateTime.now());
@@ -394,18 +380,83 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         } catch (Exception e) {
             long latencyMs = System.currentTimeMillis() - startTime;
 
+            // 检索类指标置 0（确实没检索到）；回答类指标置 null（本次根本没测到），
+            // 避免把“执行失败”当成“回答质量得 0 分”拉低整轮平均
             result.setRecallAtK(0.0);
             result.setHitAtK(0);
             result.setMrr(0.0);
-            result.setAnswerKeywordHit(0.0);
-            result.setCitationCorrect(0);
-            result.setGrounded(0);
+            result.setAnswerKeywordHit(null);
+            result.setCitationCount(null);
+            result.setCitationPrecision(null);
+            result.setCitationRecall(null);
+            result.setGrounded(null);
             result.setLatencyMs(latencyMs);
             result.setErrorMessage(e.getMessage());
             result.setCreatedAt(LocalDateTime.now());
             result.setUpdatedAt(LocalDateTime.now());
 
             return result;
+        }
+    }
+
+    /**
+     * 引用质量指标：从回答中解析 {@code [Reference N]}，按 prompt 的编号约定映射回本次检索结果的
+     * chunkId，再与期望 chunk 比对。
+     *
+     * <p>取值语义（区分“不适用”与“得了 0 分”）：</p>
+     * <ul>
+     *     <li>未生成回答 → 全部为 null（指标不适用，汇总时不计入平均）</li>
+     *     <li>生成了回答但没有任何引用 → precision/recall 为 0.0（这是可度量的质量失败，不是缺失测量）</li>
+     *     <li>期望 chunk 为空 → recall 为 null（分母无定义），precision 仍可计算</li>
+     *     <li>越界引用（编号不在上下文范围内）计入 precision 分母，因此“编造引用”会拉低精确率</li>
+     * </ul>
+     */
+    private CitationMetrics evaluateCitations(String answer, List<SearchChunkResponse> retrievedChunks,
+                                              List<Long> expectedChunkIds) {
+        if (!StringUtils.hasText(answer)) {
+            return CitationMetrics.notApplicable();
+        }
+
+        List<SearchChunkResponse> chunks = retrievedChunks == null ? List.of() : retrievedChunks;
+        CitationParser.CitationParseResult parsed = citationParser.parse(answer, chunks.size());
+
+        Set<Long> citedChunkIds = new LinkedHashSet<>();
+        for (Integer index : parsed.inRangeIndices()) {
+            SearchChunkResponse chunk = chunks.get(index - 1);
+            if (chunk != null && chunk.getChunkId() != null) {
+                citedChunkIds.add(chunk.getChunkId());
+            }
+        }
+
+        Set<Long> expectedSet = expectedChunkIds == null || expectedChunkIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(expectedChunkIds);
+
+        int relevant = 0;
+        for (Long citedId : citedChunkIds) {
+            if (expectedSet.contains(citedId)) {
+                relevant++;
+            }
+        }
+
+        // 分母 = 有效引用 + 越界引用：编造引用会拉低精确率
+        int citedTotal = citedChunkIds.size() + parsed.outOfRangeCount();
+        Double precision = citedTotal == 0 ? 0.0 : (double) relevant / citedTotal;
+        Double recall = expectedSet.isEmpty() ? null : (double) relevant / expectedSet.size();
+
+        // grounded 代理指标：给出了至少一个有效引用，且没有编造越界引用
+        int grounded = !parsed.inRangeIndices().isEmpty() && parsed.outOfRangeCount() == 0 ? 1 : 0;
+
+        return new CitationMetrics(citedChunkIds.size(), precision, recall, grounded);
+    }
+
+    /**
+     * 单个 case 的引用指标；字段为 null 表示该指标不适用（未生成回答）。
+     */
+    private record CitationMetrics(Integer citationCount, Double precision, Double recall, Integer grounded) {
+
+        static CitationMetrics notApplicable() {
+            return new CitationMetrics(null, null, null, null);
         }
     }
 
@@ -448,8 +499,6 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setRetrievalMode(run.getRetrievalMode())
                 .setTopK(run.getTopK())
                 .setCandidateK(run.getCandidateK())
-                .setVectorWeight(run.getVectorWeight())
-                .setKeywordWeight(run.getKeywordWeight())
                 .setEnableAnswerGeneration(run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
                 .setStatus(run.getStatus())
                 .setTotalCaseCount(run.getTotalCaseCount())
@@ -459,7 +508,9 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setHitRateAtK(run.getHitRateAtK())
                 .setMrr(run.getMrr())
                 .setAvgAnswerKeywordHit(run.getAvgAnswerKeywordHit())
-                .setCitationCorrectRate(run.getCitationCorrectRate())
+                .setAvgCitationPrecision(run.getAvgCitationPrecision())
+                .setAvgCitationRecall(run.getAvgCitationRecall())
+                .setGroundedRate(run.getGroundedRate())
                 .setAvgLatencyMs(run.getAvgLatencyMs())
                 .setDeltaAvgRecallAtK(currentRecall - baselineRecall)
                 .setDeltaHitRateAtK(currentHitRate - baselineHitRate)
@@ -633,10 +684,6 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         return (double) hitCount / expectedKeywords.size();
     }
 
-    private int calculateCitationCorrect(List<Long> expectedChunkIds, List<Long> retrievedChunkIds) {
-        return calculateHitAtK(expectedChunkIds, retrievedChunkIds);
-    }
-
     private List<Long> extractChunkIds(List<SearchChunkResponse> chunks) {
         List<Long> ids = new ArrayList<>();
 
@@ -653,36 +700,24 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         return ids;
     }
 
-    private void fillRunSummary(EvalRun run,
-                                int successCount,
-                                int failedCount,
-                                double totalRecall,
-                                double totalHit,
-                                double totalMrr,
-                                double totalAnswerKeywordHit,
-                                double totalCitationCorrect,
-                                double totalLatencyMs) {
+    private void fillRunSummary(EvalRun run, int successCount, int failedCount, RunMetricsAccumulator metrics) {
         int totalCount = successCount + failedCount;
 
         run.setSuccessCaseCount(successCount);
         run.setFailedCaseCount(failedCount);
         run.setTotalCaseCount(totalCount);
 
-        if (successCount > 0) {
-            run.setAvgRecallAtK(totalRecall / successCount);
-            run.setHitRateAtK(totalHit / successCount);
-            run.setMrr(totalMrr / successCount);
-            run.setAvgAnswerKeywordHit(totalAnswerKeywordHit / successCount);
-            run.setCitationCorrectRate(totalCitationCorrect / successCount);
-            run.setAvgLatencyMs(totalLatencyMs / successCount);
-        } else {
-            run.setAvgRecallAtK(0.0);
-            run.setHitRateAtK(0.0);
-            run.setMrr(0.0);
-            run.setAvgAnswerKeywordHit(0.0);
-            run.setCitationCorrectRate(0.0);
-            run.setAvgLatencyMs(0.0);
-        }
+        // 只对“该指标有值”的 case 求平均：检索类指标每个成功 case 都有值；回答类指标
+        // （关键词命中 / 引用 / grounded）只在生成了回答的 case 上有值，未生成回答记为不适用，
+        // 不能当作 0 参与平均，否则会凭空拉低整轮指标。无对应 case 时该指标为 null。
+        run.setAvgRecallAtK(average(metrics.recallSum, metrics.recallCount));
+        run.setHitRateAtK(average(metrics.hitSum, metrics.hitCount));
+        run.setMrr(average(metrics.mrrSum, metrics.mrrCount));
+        run.setAvgAnswerKeywordHit(average(metrics.answerKeywordHitSum, metrics.answerKeywordHitCount));
+        run.setAvgCitationPrecision(average(metrics.citationPrecisionSum, metrics.citationPrecisionCount));
+        run.setAvgCitationRecall(average(metrics.citationRecallSum, metrics.citationRecallCount));
+        run.setGroundedRate(average(metrics.groundedSum, metrics.groundedCount));
+        run.setAvgLatencyMs(average(metrics.latencySum, metrics.latencyCount));
 
         if (failedCount == 0) {
             run.setStatus(RUN_STATUS_SUCCESS);
@@ -696,6 +731,79 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         run.setUpdatedAt(LocalDateTime.now());
     }
 
+    /**
+     * 计数为 0 时返回 null，表示该指标在本次运行中不适用（而非得 0 分）。
+     */
+    private Double average(double sum, int count) {
+        return count == 0 ? null : sum / count;
+    }
+
+    /**
+     * run 级指标累加器：按“值非 null 才累加并计数”的方式统计，
+     * 使回答类指标的缺失值不影响平均值。
+     */
+    private static final class RunMetricsAccumulator {
+
+        private double recallSum;
+        private int recallCount;
+
+        private double hitSum;
+        private int hitCount;
+
+        private double mrrSum;
+        private int mrrCount;
+
+        private double answerKeywordHitSum;
+        private int answerKeywordHitCount;
+
+        private double citationPrecisionSum;
+        private int citationPrecisionCount;
+
+        private double citationRecallSum;
+        private int citationRecallCount;
+
+        private double groundedSum;
+        private int groundedCount;
+
+        private double latencySum;
+        private int latencyCount;
+
+        void add(EvalCaseResult result) {
+            if (result.getRecallAtK() != null) {
+                recallSum += result.getRecallAtK();
+                recallCount++;
+            }
+            if (result.getHitAtK() != null) {
+                hitSum += result.getHitAtK();
+                hitCount++;
+            }
+            if (result.getMrr() != null) {
+                mrrSum += result.getMrr();
+                mrrCount++;
+            }
+            if (result.getAnswerKeywordHit() != null) {
+                answerKeywordHitSum += result.getAnswerKeywordHit();
+                answerKeywordHitCount++;
+            }
+            if (result.getCitationPrecision() != null) {
+                citationPrecisionSum += result.getCitationPrecision();
+                citationPrecisionCount++;
+            }
+            if (result.getCitationRecall() != null) {
+                citationRecallSum += result.getCitationRecall();
+                citationRecallCount++;
+            }
+            if (result.getGrounded() != null) {
+                groundedSum += result.getGrounded();
+                groundedCount++;
+            }
+            if (result.getLatencyMs() != null) {
+                latencySum += result.getLatencyMs();
+                latencyCount++;
+            }
+        }
+    }
+
     private EvalRun createInitialRun(StartEvalRunRequest request, int totalCaseCount) {
         EvalRun run = new EvalRun();
         run.setDatasetId(request.getDatasetId());
@@ -703,8 +811,6 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
         run.setRetrievalMode(resolveRetrievalMode(request));
         run.setTopK(resolveTopK(request));
         run.setCandidateK(resolveCandidateK(request));
-        run.setVectorWeight(request.getVectorWeight());
-        run.setKeywordWeight(request.getKeywordWeight());
         run.setEnableAnswerGeneration(Boolean.TRUE.equals(request.getEnableAnswerGeneration()) ? 1 : 0);
         run.setStatus(RUN_STATUS_PENDING);
         run.setTotalCaseCount(totalCaseCount);
@@ -813,8 +919,6 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setRetrievalMode(run.getRetrievalMode())
                 .setTopK(run.getTopK())
                 .setCandidateK(run.getCandidateK())
-                .setVectorWeight(run.getVectorWeight())
-                .setKeywordWeight(run.getKeywordWeight())
                 .setEnableAnswerGeneration(run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
                 .setStatus(run.getStatus())
                 .setTotalCaseCount(run.getTotalCaseCount())
@@ -824,7 +928,9 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setHitRateAtK(run.getHitRateAtK())
                 .setMrr(run.getMrr())
                 .setAvgAnswerKeywordHit(run.getAvgAnswerKeywordHit())
-                .setCitationCorrectRate(run.getCitationCorrectRate())
+                .setAvgCitationPrecision(run.getAvgCitationPrecision())
+                .setAvgCitationRecall(run.getAvgCitationRecall())
+                .setGroundedRate(run.getGroundedRate())
                 .setAvgLatencyMs(run.getAvgLatencyMs())
                 .setErrorMessage(run.getErrorMessage())
                 .setStartedAt(run.getStartedAt())
@@ -844,7 +950,9 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setHitAtK(result.getHitAtK())
                 .setMrr(result.getMrr())
                 .setAnswerKeywordHit(result.getAnswerKeywordHit())
-                .setCitationCorrect(result.getCitationCorrect())
+                .setCitationCount(result.getCitationCount())
+                .setCitationPrecision(result.getCitationPrecision())
+                .setCitationRecall(result.getCitationRecall())
                 .setGrounded(result.getGrounded())
                 .setLatencyMs(result.getLatencyMs())
                 .setErrorMessage(result.getErrorMessage());
@@ -890,13 +998,5 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
 
     private double safeDouble(Double value) {
         return value == null ? 0.0 : value;
-    }
-
-    private int safeInt(Integer value) {
-        return value == null ? 0 : value;
-    }
-
-    private long safeLong(Long value) {
-        return value == null ? 0L : value;
     }
 }

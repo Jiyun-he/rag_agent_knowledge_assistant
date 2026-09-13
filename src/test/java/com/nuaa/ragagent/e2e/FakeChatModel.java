@@ -16,11 +16,11 @@ import java.util.List;
  */
 public class FakeChatModel implements ChatModel {
 
-    /** 覆盖所有评测 case 期望关键词的固定回答 */
+    /** 覆盖所有评测 case 期望关键词的固定回答，并带一个引用标记用于验证引用指标链路 */
     public static final String FAKE_ANSWER =
             "根据知识库检索结果，异步向量化任务用于管理文档向量化，"
                     + "关键词检索基于 Elasticsearch 的 smartcn 中文分词实现，"
-                    + "RAG 评测的指标包括 Recall、Hit、MRR，并支持重排。";
+                    + "RAG 评测的指标包括 Recall、Hit、MRR，并支持重排。[Reference 1]";
 
     @Override
     public ChatResponse call(Prompt prompt) {

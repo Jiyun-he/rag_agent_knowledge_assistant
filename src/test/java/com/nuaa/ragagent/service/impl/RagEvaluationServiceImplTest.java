@@ -21,6 +21,7 @@ import com.nuaa.ragagent.response.EvalRunCompareResponse;
 import com.nuaa.ragagent.response.EvalRunResponse;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.service.RagRetrievalService;
+import com.nuaa.ragagent.util.CitationParser;
 import com.nuaa.ragagent.util.RagPromptBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,8 @@ class RagEvaluationServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new RagEvaluationServiceImpl(datasetMapper, caseMapper, runMapper,
-                caseResultMapper, retrievalService, chatClient, promptBuilder, new ObjectMapper());
+                caseResultMapper, retrievalService, chatClient, promptBuilder, new ObjectMapper(),
+                new CitationParser());
     }
 
     // ---------- createDataset ----------
@@ -208,7 +210,11 @@ class RagEvaluationServiceImplTest {
         assertThat(response.getAvgRecallAtK()).isCloseTo(0.75, within(1e-9));
         assertThat(response.getHitRateAtK()).isCloseTo(1.0, within(1e-9));
         assertThat(response.getMrr()).isCloseTo(1.0, within(1e-9));
-        assertThat(response.getCitationCorrectRate()).isCloseTo(1.0, within(1e-9));
+        // 未开启回答生成：引用相关指标不适用，应为 null 而非 0（不能被当成“得了 0 分”）
+        assertThat(response.getAvgCitationPrecision()).isNull();
+        assertThat(response.getAvgCitationRecall()).isNull();
+        assertThat(response.getGroundedRate()).isNull();
+        assertThat(response.getAvgAnswerKeywordHit()).isNull();
         verify(caseResultMapper, times(2)).insert(any(EvalCaseResult.class));
     }
 
@@ -271,7 +277,123 @@ class RagEvaluationServiceImplTest {
         EvalCaseResult result = resultCaptor.getValue();
         assertThat(result.getAnswer()).isEqualTo("异步向量化任务用于管理任务状态。");
         assertThat(result.getAnswerKeywordHit()).isCloseTo(1.0, within(1e-9));
+        // 回答没有任何 [Reference N]：这是可度量的质量失败（0），而不是“不适用”（null）
+        assertThat(result.getCitationCount()).isZero();
+        assertThat(result.getCitationPrecision()).isZero();
+        assertThat(result.getCitationRecall()).isZero();
+        assertThat(result.getGrounded()).isZero();
         verify(chatClient).prompt();
+    }
+
+    @Test
+    void startRun_answerWithCitations_computesPrecisionRecallAndGrounded() {
+        // 期望 chunk 1；检索返回 chunk1、chunk2（对应 [Reference 1]、[Reference 2]）
+        when(datasetMapper.selectById(1L)).thenReturn(dataset(1L, 10L));
+        when(caseMapper.selectList(any())).thenReturn(List.of(
+                evalCase(1L, "q1", "[1]", "[]")));
+        when(retrievalService.search(any())).thenReturn(List.of(chunkResponse(1L), chunkResponse(2L)));
+        when(promptBuilder.buildPrompt(anyString(), anyList())).thenReturn("prompt");
+        when(runMapper.insert(any(EvalRun.class))).thenAnswer(inv -> {
+            inv.<EvalRun>getArgument(0).setId(100L);
+            return 1;
+        });
+
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec callSpec = mock(ChatClient.CallResponseSpec.class);
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(anyString())).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callSpec);
+        // 引用 [Reference 1]（命中期望）与 [Reference 2]（未命中期望）
+        when(callSpec.content()).thenReturn("答案依据 [Reference 1]，另见 [Reference 2]。");
+
+        EvalRunResponse response = service.startRun(
+                new StartEvalRunRequest().setDatasetId(1L).setEnableAnswerGeneration(true));
+
+        ArgumentCaptor<EvalCaseResult> resultCaptor = ArgumentCaptor.forClass(EvalCaseResult.class);
+        verify(caseResultMapper).insert(resultCaptor.capture());
+        EvalCaseResult result = resultCaptor.getValue();
+
+        assertThat(result.getCitationCount()).isEqualTo(2);
+        // precision = 1/2（引用了 2 条，只有 1 条是期望的）
+        assertThat(result.getCitationPrecision()).isCloseTo(0.5, within(1e-9));
+        // recall = 1/1（期望的 1 条全被引用）
+        assertThat(result.getCitationRecall()).isCloseTo(1.0, within(1e-9));
+        assertThat(result.getGrounded()).isEqualTo(1);
+
+        assertThat(response.getAvgCitationPrecision()).isCloseTo(0.5, within(1e-9));
+        assertThat(response.getAvgCitationRecall()).isCloseTo(1.0, within(1e-9));
+        assertThat(response.getGroundedRate()).isCloseTo(1.0, within(1e-9));
+    }
+
+    @Test
+    void startRun_fabricatedCitation_isNotGroundedAndLowersPrecision() {
+        // 检索只返回 1 条，但回答引用了不存在的 [Reference 7]（编造引用）
+        when(datasetMapper.selectById(1L)).thenReturn(dataset(1L, 10L));
+        when(caseMapper.selectList(any())).thenReturn(List.of(
+                evalCase(1L, "q1", "[1]", "[]")));
+        when(retrievalService.search(any())).thenReturn(List.of(chunkResponse(1L)));
+        when(promptBuilder.buildPrompt(anyString(), anyList())).thenReturn("prompt");
+        when(runMapper.insert(any(EvalRun.class))).thenAnswer(inv -> {
+            inv.<EvalRun>getArgument(0).setId(100L);
+            return 1;
+        });
+
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec callSpec = mock(ChatClient.CallResponseSpec.class);
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(anyString())).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callSpec);
+        when(callSpec.content()).thenReturn("依据 [Reference 1] 与 [Reference 7]。");
+
+        service.startRun(new StartEvalRunRequest().setDatasetId(1L).setEnableAnswerGeneration(true));
+
+        ArgumentCaptor<EvalCaseResult> resultCaptor = ArgumentCaptor.forClass(EvalCaseResult.class);
+        verify(caseResultMapper).insert(resultCaptor.capture());
+        EvalCaseResult result = resultCaptor.getValue();
+
+        assertThat(result.getCitationCount()).isEqualTo(1);
+        // precision 分母含越界引用：1 命中 / (1 有效 + 1 越界) = 0.5
+        assertThat(result.getCitationPrecision()).isCloseTo(0.5, within(1e-9));
+        // 出现编造引用 → 不算 grounded
+        assertThat(result.getGrounded()).isZero();
+    }
+
+    @Test
+    void startRun_mixedAnsweredAndUnanswered_citationAverageOnlyCountsAnswered() {
+        // case1 生成回答并含引用；case2 的检索抛错 → 引用指标为 null，不应拉低平均
+        when(datasetMapper.selectById(1L)).thenReturn(dataset(1L, 10L));
+        when(caseMapper.selectList(any())).thenReturn(List.of(
+                evalCase(1L, "q1", "[1]", "[]"),
+                evalCase(2L, "q2", "[1]", "[]")));
+        when(retrievalService.search(any())).thenAnswer(inv -> {
+            SearchChunksRequest req = inv.getArgument(0);
+            if ("q2".equals(req.getQuery())) {
+                throw new RuntimeException("boom");
+            }
+            return List.of(chunkResponse(1L));
+        });
+        when(promptBuilder.buildPrompt(anyString(), anyList())).thenReturn("prompt");
+        when(runMapper.insert(any(EvalRun.class))).thenAnswer(inv -> {
+            inv.<EvalRun>getArgument(0).setId(100L);
+            return 1;
+        });
+
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec callSpec = mock(ChatClient.CallResponseSpec.class);
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(anyString())).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(callSpec);
+        when(callSpec.content()).thenReturn("依据 [Reference 1]。");
+
+        EvalRunResponse response = service.startRun(
+                new StartEvalRunRequest().setDatasetId(1L).setEnableAnswerGeneration(true));
+
+        assertThat(response.getSuccessCaseCount()).isEqualTo(1);
+        assertThat(response.getFailedCaseCount()).isEqualTo(1);
+        // 只对成功且有回答的那 1 个 case 求平均，失败 case 的 null 不参与
+        assertThat(response.getAvgCitationPrecision()).isCloseTo(1.0, within(1e-9));
+        assertThat(response.getAvgCitationRecall()).isCloseTo(1.0, within(1e-9));
+        assertThat(response.getGroundedRate()).isCloseTo(1.0, within(1e-9));
     }
 
     // ---------- compareRuns ----------
@@ -383,7 +505,7 @@ class RagEvaluationServiceImplTest {
                 .setHitRateAtK(hitRate)
                 .setMrr(mrr)
                 .setAvgAnswerKeywordHit(0.5)
-                .setCitationCorrectRate(0.6)
+                .setGroundedRate(0.6)
                 .setAvgLatencyMs(latency);
     }
 }
