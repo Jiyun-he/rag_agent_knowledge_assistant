@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
   "spaceId": 1,
-  "query": "异步向量化任务的作用是什么",
+  "query": "文档索引任务的作用是什么",
   "retrievalMode": "VECTOR_ONLY",
   "topK": 5
 }
@@ -16,7 +16,7 @@ Content-Type: application/json
 
 {
   "spaceId": 1,
-  "query": "EmbeddingTaskService",
+  "query": "IndexTaskService",
   "retrievalMode": "KEYWORD_ONLY",
   "topK": 5
 }
@@ -27,12 +27,10 @@ Content-Type: application/json
 
 {
   "spaceId": 1,
-  "query": "EmbeddingTaskService 异步向量化任务",
+  "query": "IndexTaskService 文档索引任务",
   "retrievalMode": "HYBRID",
   "topK": 5,
-  "candidateK": 20,
-  "vectorWeight": 0.7,
-  "keywordWeight": 0.3
+  "candidateK": 20
 }
 
 
@@ -42,12 +40,10 @@ Content-Type: application/json
 
 {
   "spaceId": 1,
-  "query": "EmbeddingTaskService 异步向量化任务",
+  "query": "IndexTaskService 文档索引任务",
   "retrievalMode": "HYBRID_RERANK",
   "topK": 5,
-  "candidateK": 20,
-  "vectorWeight": 0.6,
-  "keywordWeight": 0.4
+  "candidateK": 20
 }
 
 
@@ -57,11 +53,8 @@ Content-Type: application/json
 
 {
   "spaceId": 1,
-  "question": "异步向量化任务的作用是什么？",
+  "question": "文档索引任务的作用是什么？",
   "retrievalMode": "HYBRID_RERANK",
   "topK": 5,
-  "candidateK": 20,
-  "vectorWeight": 0.6,
-  "keywordWeight": 0.4
+  "candidateK": 20
 }
-

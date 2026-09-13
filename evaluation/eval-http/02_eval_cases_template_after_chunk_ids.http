@@ -1,4 +1,10 @@
 @host = http://localhost:8080
+
+# 占位 ID 说明（运行时必须替换为真实值，不要臆造数字）：
+# @spaceId  —— 执行 01_import_docs_and_basic_test.http 第 1 步后，用响应 data.id 替换；
+# @datasetId—— 执行 01_import_docs_and_basic_test.http 第 14 步后，用响应 data.id 替换；
+# expectedChunkIds —— 先执行 GET /api/documents/{documentId}/chunks，把每个问题实际命中的 chunk id 填入，
+#                     下面的数组只是示例形式，运行时需按真实 chunkId 替换。
 @spaceId = 1
 @datasetId = 1
 
@@ -9,21 +15,21 @@ Content-Type: application/json
 
 {
   "question": "这个项目的完整 RAG 问答链路是什么？",
-  "expectedAnswer": "项目链路包括知识库空间创建、文档创建、文本切分、chunk 存储、异步向量化、Qdrant 向量写入、RAG 检索、prompt 构建、大模型回答、问答历史保存和引用追踪。",
+  "expectedAnswer": "项目链路包括知识库空间创建、文档创建、文本切分、chunk 存储、索引任务登记、Qdrant 向量索引与 Elasticsearch 关键词索引构建、RAG 检索、prompt 构建、大模型回答、问答历史保存和引用追踪。",
   "expectedChunkIds": [1,2],
-  "expectedKeywords": ["知识库空间", "文档切分", "异步向量化", "RAG 检索", "引用追踪"],
+  "expectedKeywords": ["知识库空间", "文档切分", "索引任务", "RAG 检索", "引用追踪"],
   "difficulty": "easy"
 }
 
-### Case 2：MySQL 与 Qdrant 分工
+### Case 2：MySQL、Qdrant 与 Elasticsearch 分工
 POST {{host}}/api/rag/eval/datasets/{{datasetId}}/cases
 Content-Type: application/json
 
 {
-  "question": "MySQL 和 Qdrant 在系统中分别负责什么？",
-  "expectedAnswer": "MySQL 保存知识库、文档、chunk、任务、问答历史和评测记录等结构化数据；Qdrant 保存 chunk embedding 向量并提供向量相似度检索。",
+  "question": "MySQL、Qdrant 和 Elasticsearch 在系统中分别负责什么？",
+  "expectedAnswer": "MySQL 保存知识库空间、文档、chunk、索引任务、问答历史和评测记录等结构化数据；Qdrant 保存 chunk embedding 向量并提供向量相似度检索；Elasticsearch 配合 smartcn 中文分词提供关键词检索。",
   "expectedChunkIds": [1],
-  "expectedKeywords": ["MySQL", "Qdrant", "结构化业务数据", "embedding", "向量检索"],
+  "expectedKeywords": ["MySQL", "Qdrant", "Elasticsearch", "embedding", "关键词检索"],
   "difficulty": "easy"
 }
 
@@ -33,9 +39,9 @@ Content-Type: application/json
 
 {
   "question": "KbChunk 在项目中有什么作用？",
-  "expectedAnswer": "KbChunk 表示文档切分后的文本片段，是向量化、检索和引用追踪的基本单位。",
+  "expectedAnswer": "KbChunk 表示文档切分后的文本片段，是索引构建、检索和引用追踪的基本单位。",
   "expectedChunkIds": [3,7],
-  "expectedKeywords": ["KbChunk", "文本片段", "向量化", "检索", "引用"],
+  "expectedKeywords": ["KbChunk", "文本片段", "索引", "检索", "引用"],
   "difficulty": "easy"
 }
 
@@ -45,31 +51,31 @@ Content-Type: application/json
 
 {
   "question": "创建文档后系统会做哪些处理？",
-  "expectedAnswer": "系统会校验 spaceId，写入 KbDocument，调用 TextChunker 切分 content，将生成的片段写入 kb_chunk，并更新 chunkCount。",
+  "expectedAnswer": "系统会校验 spaceId，写入 KbDocument，调用 TextChunker 切分 content，将生成的片段写入 kb_chunk，并在事务提交后登记 BUILD_INDEX 索引任务由 worker 异步构建索引；索引完成前文档处于 INDEXING 状态。",
   "expectedChunkIds": [6,7],
-  "expectedKeywords": ["spaceId", "KbDocument", "TextChunker", "kb_chunk", "chunkCount"],
+  "expectedKeywords": ["spaceId", "KbDocument", "TextChunker", "BUILD_INDEX", "INDEXING"],
   "difficulty": "easy"
 }
 
-### Case 5：vectorize-async
+### Case 5：索引任务接口
 POST {{host}}/api/rag/eval/datasets/{{datasetId}}/cases
 Content-Type: application/json
 
 {
-  "question": "/api/rag/documents/{documentId}/vectorize-async 接口的作用是什么？",
-  "expectedAnswer": "该接口用于创建并启动文档异步向量化任务，将文档下的 pending chunk 转换为 embedding 并写入 Qdrant。",
+  "question": "POST /api/rag/documents/{documentId}/index 接口的作用是什么？",
+  "expectedAnswer": "该接口用于手动触发 BUILD_INDEX 索引任务，登记任务后立即返回任务详情，由 IndexTaskWorker 异步为文档构建索引。",
   "expectedChunkIds": [8],
-  "expectedKeywords": ["vectorize-async", "异步向量化", "pending chunk", "embedding", "Qdrant"],
+  "expectedKeywords": ["BUILD_INDEX", "索引任务", "IndexTaskWorker", "异步", "documentId"],
   "difficulty": "easy"
 }
 
-### Case 6：向量化成功字段
+### Case 6：chunk 索引成功字段
 POST {{host}}/api/rag/eval/datasets/{{datasetId}}/cases
 Content-Type: application/json
 
 {
-  "question": "chunk 向量化成功后会更新哪些字段？",
-  "expectedAnswer": "向量化成功后会将 KbChunk 的 embeddingStatus 更新为 1，并写入 vectorId。",
+  "question": "chunk 索引成功后会更新哪些字段？",
+  "expectedAnswer": "索引成功后会将该 KbChunk 的 embeddingStatus 更新为 1，并写入 vectorId。",
   "expectedChunkIds": [9],
   "expectedKeywords": ["embeddingStatus", "1", "vectorId", "KbChunk"],
   "difficulty": "medium"
@@ -93,9 +99,9 @@ Content-Type: application/json
 
 {
   "question": "SearchChunksRequest 中 topK 和 candidateK 有什么区别？",
-  "expectedAnswer": "topK 表示最终返回的 chunk 数量，candidateK 表示混合召回阶段的候选数量。",
+  "expectedAnswer": "topK 表示最终返回的 chunk 条数，candidateK 表示混合检索中每一路的召回深度，实际取 max(candidateK, topK)，默认 20。",
   "expectedChunkIds": [10],
-  "expectedKeywords": ["topK", "candidateK", "最终返回", "候选数量"],
+  "expectedKeywords": ["topK", "candidateK", "最终返回", "召回深度"],
   "difficulty": "medium"
 }
 
@@ -104,10 +110,10 @@ POST {{host}}/api/rag/eval/datasets/{{datasetId}}/cases
 Content-Type: application/json
 
 {
-  "question": "HYBRID_RERANK 如何进行规则重排序？",
-  "expectedAnswer": "HYBRID_RERANK 在混合召回结果上计算 exactTermScore 和 symbolScore，并结合 hybridScore 得到 rerankScore 或 finalScore。",
+  "question": "HYBRID_RERANK 如何进行重排序？",
+  "expectedAnswer": "HYBRID 先用等权 RRF（RRF_K = 60）按排名融合向量召回与关键词召回；HYBRID_RERANK 再把融合后的候选（默认最多 30 条）发送给 TEI 的 /rerank 服务，把返回的重排分数作为 finalScore 降序返回。",
   "expectedChunkIds": [13,14],
-  "expectedKeywords": ["HYBRID_RERANK", "exactTermScore", "symbolScore", "hybridScore", "finalScore"],
+  "expectedKeywords": ["HYBRID_RERANK", "RRF", "TEI", "rerank", "finalScore"],
   "difficulty": "medium"
 }
 
@@ -157,8 +163,6 @@ Content-Type: application/json
   "retrievalMode": "VECTOR_ONLY",
   "topK": 5,
   "candidateK": 20,
-  "vectorWeight": 0.7,
-  "keywordWeight": 0.3,
   "enableAnswerGeneration": false
 }
 
@@ -172,8 +176,6 @@ Content-Type: application/json
   "retrievalMode": "KEYWORD_ONLY",
   "topK": 5,
   "candidateK": 20,
-  "vectorWeight": 0.7,
-  "keywordWeight": 0.3,
   "enableAnswerGeneration": false
 }
 
@@ -187,8 +189,6 @@ Content-Type: application/json
   "retrievalMode": "HYBRID",
   "topK": 5,
   "candidateK": 20,
-  "vectorWeight": 0.7,
-  "keywordWeight": 0.3,
   "enableAnswerGeneration": false
 }
 
@@ -202,13 +202,11 @@ Content-Type: application/json
   "retrievalMode": "HYBRID_RERANK",
   "topK": 5,
   "candidateK": 20,
-  "vectorWeight": 0.7,
-  "keywordWeight": 0.3,
   "enableAnswerGeneration": false
 }
 
 ### 对比多个 EvalRun
-# 将 runIds 替换为上面四次运行返回的真实 runId
+# runIds 是运行时才能确定的真实值：把上面四次运行响应中的 data.id 依次填入，不要臆造数字。
 POST {{host}}/api/rag/eval/runs/compare
 Content-Type: application/json
 

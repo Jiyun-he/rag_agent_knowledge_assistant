@@ -6,4 +6,6 @@
 
 文档创建并不是简单保存一条 document 记录。因为 RAG 检索的基本单位是 chunk，而不是整篇文档，所以文档写入后必须生成 KbChunk。每个 chunk 会记录 documentId、spaceId、chunkIndex、content、charCount、embeddingStatus 和 status。初始 embeddingStatus 为 0，表示该 chunk 尚未向量化。
 
-文档更新时，系统会更新 KbDocument 的内容，并删除该 documentId 下旧的 chunk，再按照新内容重新切分和写入 chunk。这样可以避免文档正文与 chunk 内容不一致。文档删除采用软删除方式，将 document.status 设置为 0，同时将关联 chunk.status 设置为 0。
+文档状态共有 INVALID、ACTIVE、INDEXING 和 FAILED 四态。新建文档的初始状态为 INDEXING，此时尚未生效、不可被检索；当文档下全部 chunk 索引成功后转为 ACTIVE，才参与检索；只要存在失败的 chunk，文档即为 FAILED，可以重试；被更新或删除的旧文档转为 INVALID，但永不物理删除。检索只返回 ACTIVE 文档，出口另有以 MySQL 为准的有效性校验。
+
+文档创建、更新和删除都不在请求线程内同步完成索引操作，而是在事务提交后登记索引任务，由 worker 异步执行。创建文档登记 BUILD_INDEX；删除文档登记 DELETE_INDEX；更新文档登记 DELETE_INDEX(旧文档) 加 BUILD_INDEX(新文档)。这里所说的删除采用软删除方式，将 document.status 置为 INVALID，同时将关联 chunk.status 置为 0。更新时，系统会更新 KbDocument 的内容，并删除该 documentId 下旧的 chunk，再按照新内容重新切分和写入 chunk，这样可以避免文档正文与 chunk 内容不一致。

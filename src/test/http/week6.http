@@ -1,16 +1,23 @@
-### Submit async vectorization task
-POST http://localhost:8080/api/rag/documents/1/vectorize-async
+### Submit index task (BUILD_INDEX)
+# 文档创建时已自动登记 BUILD_INDEX，此接口用于手动触发；响应 data.taskId 即任务 ID。
+POST http://localhost:8080/api/rag/documents/1/index
 
 
-### Get embedding task by taskId
-GET http://localhost:8080/api/rag/embedding-tasks/1
+### Get index task by taskId
+# 把路径中的 1 替换为上一步响应里的真实 taskId
+GET http://localhost:8080/api/rag/index-tasks/1
 
 
-### List embedding tasks of document
-GET http://localhost:8080/api/rag/documents/1/embedding-tasks
+### List index tasks of document
+GET http://localhost:8080/api/rag/documents/1/index-tasks
 
 
-### Ask after async vectorization
+### Retry a FAILED index task
+# 仅当任务状态为 FAILED（status = 4）时可用
+POST http://localhost:8080/api/rag/index-tasks/1/retry
+
+
+### Ask after index built
 POST http://localhost:8080/api/rag/ask
 Content-Type: application/json
 
