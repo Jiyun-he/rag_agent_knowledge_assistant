@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 /**
  * @author jiyunhe
  */
@@ -27,6 +29,12 @@ public class KeywordIndexServiceImpl implements KeywordIndexService {
     private static final int CHUNK_STATUS_NORMAL = 1;
 
     private static final int CHUNK_EMBEDDING_STATUS_SUCCESS = 1;
+
+    /** 对账时 ES scroll 每批大小 */
+    private static final int SCROLL_SIZE = 500;
+
+    /** 对账时 ES scroll 上下文存活时间 */
+    private static final String SCROLL_KEEP_ALIVE = "30s";
 
     private final ElasticsearchClient esClient;
 
@@ -147,6 +155,86 @@ public class KeywordIndexServiceImpl implements KeywordIndexService {
 
         for (KbChunk chunk : chunks) {
             upsertChunk(chunk);
+        }
+    }
+
+    @Override
+    public int reconcileOrphans(Set<Long> validChunkIds, Set<Long> existingChunkIds) {
+        try {
+            Set<Long> indexChunkIds = new HashSet<>();
+            int scanned = 0;
+
+            SearchResponse<KeywordIndexDoc> response = esClient.search(s -> s
+                            .index(INDEX_NAME)
+                            .size(SCROLL_SIZE)
+                            .scroll(t -> t.time(SCROLL_KEEP_ALIVE)),
+                    KeywordIndexDoc.class);
+
+            collectIndexHits(indexChunkIds, response.hits().hits());
+            scanned = indexChunkIds.size();
+
+            String scrollId = response.scrollId();
+            if (scrollId != null) {
+                while (true) {
+                    String currentScrollId = scrollId;
+                    co.elastic.clients.elasticsearch.core.ScrollResponse<KeywordIndexDoc> next =
+                            esClient.scroll(s -> s.scrollId(currentScrollId).scroll(t -> t.time(SCROLL_KEEP_ALIVE)),
+                                    KeywordIndexDoc.class);
+
+                    if (next.hits().hits().isEmpty()) {
+                        clearScroll(currentScrollId);
+                        break;
+                    }
+
+                    collectIndexHits(indexChunkIds, next.hits().hits());
+                    scanned = indexChunkIds.size();
+
+                    String nextScrollId = next.scrollId();
+                    if (nextScrollId == null || nextScrollId.equals(currentScrollId)) {
+                        break;
+                    }
+                    scrollId = nextScrollId;
+                }
+            }
+
+            existingChunkIds.addAll(indexChunkIds);
+
+            List<Long> orphans = indexChunkIds.stream()
+                    .filter(chunkId -> !validChunkIds.contains(chunkId))
+                    .toList();
+
+            if (orphans.isEmpty()) {
+                return 0;
+            }
+
+            esClient.deleteByQuery(d -> d
+                    .index(INDEX_NAME)
+                    .query(q -> q.bool(b -> b
+                            .filter(f -> f.terms(t -> t
+                                    .field("chunkId")
+                                    .terms(tq -> tq.value(orphans.stream().map(FieldValue::of).toList()))))))
+                    .refresh(true));
+
+            return orphans.size();
+        } catch (IOException e) {
+            throw new BusinessException("Elasticsearch 对账失败: " + e.getMessage());
+        }
+    }
+
+    private void collectIndexHits(Set<Long> target, List<Hit<KeywordIndexDoc>> hits) {
+        for (Hit<KeywordIndexDoc> hit : hits) {
+            KeywordIndexDoc doc = hit.source();
+            if (doc != null) {
+                target.add(doc.chunkId());
+            }
+        }
+    }
+
+    private void clearScroll(String scrollId) {
+        try {
+            esClient.clearScroll(c -> c.scrollId(scrollId));
+        } catch (IOException e) {
+            // 清理 scroll 上下文失败不影响对账结果
         }
     }
 

@@ -5,6 +5,12 @@ spring:
   application:
     name: rag-agent-knowledge-assistant
 
+  task:
+    scheduling:
+      # @Scheduled 线程池：worker 轮询、RUNNING 回收、周期对账可并行，避免互相阻塞
+      pool:
+        size: 3
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/rag_agent?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
@@ -70,3 +76,29 @@ rag:
       context-max: 100
   rerank:
     base-url: http://localhost:8081
+
+  # 检索参数
+  retrieval:
+    # 送入重排模型的候选数上限（HYBRID_RERANK）；与 candidateK 解耦，可单独作为实验变量
+    rerank-candidate-top-m: 30
+    # 向量检索 topK 上限：需覆盖 candidateK 的可用范围，否则 candidateK 在向量侧会被静默截断
+    vector-max-top-k: 50
+
+  # 周期索引对账（兜底清理 Qdrant/ES 孤儿数据 + 补建缺失索引），默认每天 03:00
+  reconciliation:
+    cron: 0 0 3 * * *
+
+  # 持久化异步索引任务机制
+  task:
+    # worker 轮询可执行任务（PENDING / 到期 RETRY_WAIT）的间隔
+    worker-poll-ms: 2000
+    worker-initial-delay-ms: 5000
+    worker-batch-size: 10
+    # RUNNING 超时回收的扫描间隔
+    recover-poll-ms: 30000
+    # RUNNING 任务超时阈值：进程被杀后遗留的 RUNNING 会被回收重排
+    running-timeout-ms: 1800000
+    # 失败重试：指数退避（base × 2^n，上限 max），max-retry-times 次后置 FAILED
+    max-retry-times: 5
+    retry-base-delay-ms: 1000
+    retry-max-delay-ms: 60000

@@ -4,6 +4,7 @@ import com.nuaa.ragagent.entity.KbChunk;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 
 import java.util.List;
+import java.util.Set;
 /**
  * 关键词索引服务：封装 Elasticsearch 的写入、清理与检索。
  *
@@ -44,4 +45,14 @@ public interface KeywordIndexService {
      * 全量重建索引：扫描 status=1 且 embedding_status=1 的 chunk 全部重写。
      */
     void rebuildAll();
+
+    /**
+     * 对账：全量扫描索引中的 chunkId，清理不在有效集合中的孤儿索引文档（物理删除），
+     * 同时将扫描到的全部 chunkId 收集到 {@code existingChunkIds} 供调用方做缺失检测。
+     *
+     * @param validChunkIds    MySQL 侧当前有效的 chunkId 集合
+     * @param existingChunkIds 输出参数：本次扫描到的全部 chunkId（含孤儿）
+     * @return 清理的孤儿索引文档数量
+     */
+    int reconcileOrphans(Set<Long> validChunkIds, Set<Long> existingChunkIds);
 }

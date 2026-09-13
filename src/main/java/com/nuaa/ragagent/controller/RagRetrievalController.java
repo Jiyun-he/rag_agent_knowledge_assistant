@@ -3,8 +3,6 @@ package com.nuaa.ragagent.controller;
 import com.nuaa.ragagent.common.ApiResponse;
 import com.nuaa.ragagent.request.SearchChunksRequest;
 import com.nuaa.ragagent.response.SearchChunkResponse;
-import com.nuaa.ragagent.response.VectorizeDocumentResponse;
-import com.nuaa.ragagent.service.KnowledgeEmbeddingService;
 import com.nuaa.ragagent.service.RagRetrievalService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
