@@ -40,12 +40,14 @@ CREATE TABLE IF NOT EXISTS kb_chunk (
     KEY idx_kb_chunk_embedding_status (embedding_status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Knowledge chunk table';
 
-CREATE TABLE IF NOT EXISTS kb_embedding_task (
-                                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                                 document_id BIGINT NOT NULL,
-                                                 space_id BIGINT NOT NULL,
-                                                 task_type VARCHAR(64) NOT NULL,
-    status TINYINT NOT NULL DEFAULT 0,
+CREATE TABLE IF NOT EXISTS kb_index_task (
+                                             id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                             document_id BIGINT NOT NULL COMMENT 'Document ID',
+                                             space_id BIGINT NOT NULL COMMENT 'Knowledge space ID',
+                                             task_type VARCHAR(32) NOT NULL COMMENT 'Task type: BUILD_INDEX / DELETE_INDEX / REPAIR_INDEX',
+    status TINYINT NOT NULL DEFAULT 0 COMMENT 'Status: 0 pending, 1 running, 2 retry_wait, 3 success, 4 failed',
+    retry_count INT NOT NULL DEFAULT 0 COMMENT 'Failed attempt count (includes timeout recoveries)',
+    next_retry_at DATETIME DEFAULT NULL COMMENT 'Next execution time for RETRY_WAIT',
     total_chunk_count INT NOT NULL DEFAULT 0,
     pending_chunk_count INT NOT NULL DEFAULT 0,
     success_count INT NOT NULL DEFAULT 0,
@@ -56,11 +58,21 @@ CREATE TABLE IF NOT EXISTS kb_embedding_task (
     finished_at DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_document_id (document_id),
-    INDEX idx_space_id (space_id),
-    INDEX idx_status (status),
-    INDEX idx_created_at (created_at)
-    );
+    -- 去重分组：BUILD_INDEX 与 REPAIR_INDEX 都是“写索引”，互斥；DELETE_INDEX 独立成组。
+    -- 生成列由 MySQL 维护，避免应用层漏写导致去重失效。
+    dedup_group VARCHAR(16) GENERATED ALWAYS AS (
+        CASE WHEN task_type IN ('BUILD_INDEX', 'REPAIR_INDEX') THEN 'BUILD' ELSE 'DELETE' END
+        ) STORED COMMENT 'Dedup group: exclusive scope for active task dedup',
+    -- 活跃标记：活跃任务为 1，终态（SUCCESS/FAILED）为 NULL。
+    -- 唯一索引中 NULL 互不冲突，因此终态行可任意多条，而同一 Document+分组的活跃行最多一条。
+    active_flag TINYINT GENERATED ALWAYS AS (
+        CASE WHEN status IN (0, 1, 2) THEN 1 ELSE NULL END
+        ) STORED COMMENT 'Active flag: 1 for PENDING/RUNNING/RETRY_WAIT, NULL for terminal',
+    INDEX idx_task_document_type (document_id, task_type),
+    INDEX idx_task_status_retry (status, next_retry_at),
+    INDEX idx_task_created_at (created_at),
+    UNIQUE KEY uk_task_active_dedup (document_id, dedup_group, active_flag)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Index task table';
 
 CREATE TABLE IF NOT EXISTS qa_session (
                                           id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary key ID',
@@ -141,9 +153,7 @@ CREATE TABLE IF NOT EXISTS eval_run (
                                         run_name VARCHAR(255) NOT NULL COMMENT 'Evaluation run name',
     retrieval_mode VARCHAR(64) NOT NULL COMMENT 'Retrieval mode',
     top_k INT NOT NULL DEFAULT 5 COMMENT 'Top K',
-    candidate_k INT NOT NULL DEFAULT 20 COMMENT 'Candidate K',
-    vector_weight DOUBLE DEFAULT NULL COMMENT 'Vector score weight',
-    keyword_weight DOUBLE DEFAULT NULL COMMENT 'Keyword score weight',
+    candidate_k INT NOT NULL DEFAULT 20 COMMENT 'Candidate K: per-retriever recall limit for hybrid modes',
     enable_answer_generation TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether to generate answer: 1 yes, 0 no',
     status TINYINT NOT NULL DEFAULT 0 COMMENT 'Run status: 0 pending, 1 running, 2 success, 3 failed, 4 partial success',
     total_case_count INT NOT NULL DEFAULT 0 COMMENT 'Total case count',
@@ -153,7 +163,9 @@ CREATE TABLE IF NOT EXISTS eval_run (
     hit_rate_at_k DOUBLE DEFAULT NULL COMMENT 'Hit Rate@K',
     mrr DOUBLE DEFAULT NULL COMMENT 'Mean Reciprocal Rank',
     avg_answer_keyword_hit DOUBLE DEFAULT NULL COMMENT 'Average answer keyword hit',
-    citation_correct_rate DOUBLE DEFAULT NULL COMMENT 'Citation correct rate',
+    avg_citation_precision DOUBLE DEFAULT NULL COMMENT 'Average citation precision (only cases with generated answer)',
+    avg_citation_recall DOUBLE DEFAULT NULL COMMENT 'Average citation recall (only cases with generated answer)',
+    grounded_rate DOUBLE DEFAULT NULL COMMENT 'Grounded rate: share of cases whose answer cited no fabricated reference (only cases with generated answer)',
     avg_latency_ms DOUBLE DEFAULT NULL COMMENT 'Average latency in milliseconds',
     error_message TEXT DEFAULT NULL COMMENT 'Error message',
     started_at DATETIME DEFAULT NULL COMMENT 'Started time',
@@ -178,8 +190,10 @@ CREATE TABLE IF NOT EXISTS eval_case_result (
                                                 hit_at_k TINYINT DEFAULT NULL COMMENT 'Hit@K: 1 hit, 0 miss',
                                                 mrr DOUBLE DEFAULT NULL COMMENT 'Reciprocal rank',
                                                 answer_keyword_hit DOUBLE DEFAULT NULL COMMENT 'Answer keyword hit score',
-                                                citation_correct TINYINT DEFAULT NULL COMMENT 'Citation correct: 1 yes, 0 no',
-                                                grounded TINYINT DEFAULT NULL COMMENT 'Grounded: 1 yes, 0 no',
+                                                citation_count INT DEFAULT NULL COMMENT 'Number of valid [Reference N] citations parsed from the answer (NULL when no answer)',
+                                                citation_precision DOUBLE DEFAULT NULL COMMENT 'Citation precision = |cited INTERSECT expected| / |cited| (NULL when no answer or no citation)',
+                                                citation_recall DOUBLE DEFAULT NULL COMMENT 'Citation recall = |cited INTERSECT expected| / |expected| (NULL when no answer)',
+                                                grounded TINYINT DEFAULT NULL COMMENT 'Grounded proxy: 1 = answer cited at least one reference and cited no out-of-range reference; 0 = fabricated reference; NULL = no answer',
                                                 latency_ms BIGINT DEFAULT NULL COMMENT 'Latency in milliseconds',
                                                 error_message TEXT DEFAULT NULL COMMENT 'Error message',
                                                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Created time',

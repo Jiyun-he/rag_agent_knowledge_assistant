@@ -14,14 +14,14 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfig {
 
-    @Bean(name = "embeddingTaskExecutor")
-    public Executor embeddingTaskExecutor() {
+    @Bean(name = "indexTaskExecutor")
+    public Executor indexTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
         executor.setCorePoolSize(2);
         executor.setMaxPoolSize(4);
         executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("embedding-task-");
+        executor.setThreadNamePrefix("index-task-");
 
         executor.initialize();
         return executor;

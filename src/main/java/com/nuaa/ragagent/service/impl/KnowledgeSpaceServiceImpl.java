@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.nuaa.ragagent.entity.KbDocument;
 import com.nuaa.ragagent.entity.KbSpace;
+import com.nuaa.ragagent.enums.DocumentStatus;
 import com.nuaa.ragagent.exception.BusinessException;
 import com.nuaa.ragagent.mapper.KbDocumentMapper;
 import com.nuaa.ragagent.mapper.KbSpaceMapper;
@@ -105,10 +106,11 @@ public class KnowledgeSpaceServiceImpl implements KnowledgeSpaceService {
     public Boolean delete(Long id) {
         getById(id);
 
+        // 空间内存在任何非 INVALID 文档（ACTIVE/INDEXING/FAILED）即不允许删除空间
         Long activeDocumentCount = kbDocumentMapper.selectCount(
                 new LambdaQueryWrapper<KbDocument>()
                         .eq(KbDocument::getSpaceId, id)
-                        .eq(KbDocument::getStatus, 1)
+                        .ne(KbDocument::getStatus, DocumentStatus.INVALID.getValue())
         );
 
         if (activeDocumentCount > 0) {

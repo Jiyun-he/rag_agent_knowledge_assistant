@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
  * @author jiyunhe
  */
 
-public class EmbeddingTaskResponse {
+public class IndexTaskResponse {
 
     private Long taskId;
 
@@ -13,11 +13,19 @@ public class EmbeddingTaskResponse {
 
     private Long spaceId;
 
+    /** 任务类型：BUILD_INDEX / DELETE_INDEX / REPAIR_INDEX */
     private String taskType;
 
+    /** 任务状态数值，见 TaskStatus */
     private Integer status;
 
     private String statusText;
+
+    /** 已失败次数（含超时回收），重试计数 */
+    private Integer retryCount;
+
+    /** RETRY_WAIT 状态下的下次执行时间 */
+    private LocalDateTime nextRetryAt;
 
     private Integer totalChunkCount;
 
@@ -43,7 +51,7 @@ public class EmbeddingTaskResponse {
         return taskId;
     }
 
-    public EmbeddingTaskResponse setTaskId(Long taskId) {
+    public IndexTaskResponse setTaskId(Long taskId) {
         this.taskId = taskId;
         return this;
     }
@@ -52,7 +60,7 @@ public class EmbeddingTaskResponse {
         return documentId;
     }
 
-    public EmbeddingTaskResponse setDocumentId(Long documentId) {
+    public IndexTaskResponse setDocumentId(Long documentId) {
         this.documentId = documentId;
         return this;
     }
@@ -61,7 +69,7 @@ public class EmbeddingTaskResponse {
         return spaceId;
     }
 
-    public EmbeddingTaskResponse setSpaceId(Long spaceId) {
+    public IndexTaskResponse setSpaceId(Long spaceId) {
         this.spaceId = spaceId;
         return this;
     }
@@ -70,7 +78,7 @@ public class EmbeddingTaskResponse {
         return taskType;
     }
 
-    public EmbeddingTaskResponse setTaskType(String taskType) {
+    public IndexTaskResponse setTaskType(String taskType) {
         this.taskType = taskType;
         return this;
     }
@@ -79,7 +87,7 @@ public class EmbeddingTaskResponse {
         return status;
     }
 
-    public EmbeddingTaskResponse setStatus(Integer status) {
+    public IndexTaskResponse setStatus(Integer status) {
         this.status = status;
         return this;
     }
@@ -88,8 +96,26 @@ public class EmbeddingTaskResponse {
         return statusText;
     }
 
-    public EmbeddingTaskResponse setStatusText(String statusText) {
+    public IndexTaskResponse setStatusText(String statusText) {
         this.statusText = statusText;
+        return this;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public IndexTaskResponse setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
+        return this;
+    }
+
+    public LocalDateTime getNextRetryAt() {
+        return nextRetryAt;
+    }
+
+    public IndexTaskResponse setNextRetryAt(LocalDateTime nextRetryAt) {
+        this.nextRetryAt = nextRetryAt;
         return this;
     }
 
@@ -97,7 +123,7 @@ public class EmbeddingTaskResponse {
         return totalChunkCount;
     }
 
-    public EmbeddingTaskResponse setTotalChunkCount(Integer totalChunkCount) {
+    public IndexTaskResponse setTotalChunkCount(Integer totalChunkCount) {
         this.totalChunkCount = totalChunkCount;
         return this;
     }
@@ -106,7 +132,7 @@ public class EmbeddingTaskResponse {
         return pendingChunkCount;
     }
 
-    public EmbeddingTaskResponse setPendingChunkCount(Integer pendingChunkCount) {
+    public IndexTaskResponse setPendingChunkCount(Integer pendingChunkCount) {
         this.pendingChunkCount = pendingChunkCount;
         return this;
     }
@@ -115,7 +141,7 @@ public class EmbeddingTaskResponse {
         return successCount;
     }
 
-    public EmbeddingTaskResponse setSuccessCount(Integer successCount) {
+    public IndexTaskResponse setSuccessCount(Integer successCount) {
         this.successCount = successCount;
         return this;
     }
@@ -124,7 +150,7 @@ public class EmbeddingTaskResponse {
         return failedCount;
     }
 
-    public EmbeddingTaskResponse setFailedCount(Integer failedCount) {
+    public IndexTaskResponse setFailedCount(Integer failedCount) {
         this.failedCount = failedCount;
         return this;
     }
@@ -133,7 +159,7 @@ public class EmbeddingTaskResponse {
         return skippedCount;
     }
 
-    public EmbeddingTaskResponse setSkippedCount(Integer skippedCount) {
+    public IndexTaskResponse setSkippedCount(Integer skippedCount) {
         this.skippedCount = skippedCount;
         return this;
     }
@@ -142,7 +168,7 @@ public class EmbeddingTaskResponse {
         return errorMessage;
     }
 
-    public EmbeddingTaskResponse setErrorMessage(String errorMessage) {
+    public IndexTaskResponse setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         return this;
     }
@@ -151,7 +177,7 @@ public class EmbeddingTaskResponse {
         return startedAt;
     }
 
-    public EmbeddingTaskResponse setStartedAt(LocalDateTime startedAt) {
+    public IndexTaskResponse setStartedAt(LocalDateTime startedAt) {
         this.startedAt = startedAt;
         return this;
     }
@@ -160,7 +186,7 @@ public class EmbeddingTaskResponse {
         return finishedAt;
     }
 
-    public EmbeddingTaskResponse setFinishedAt(LocalDateTime finishedAt) {
+    public IndexTaskResponse setFinishedAt(LocalDateTime finishedAt) {
         this.finishedAt = finishedAt;
         return this;
     }
@@ -169,7 +195,7 @@ public class EmbeddingTaskResponse {
         return createdAt;
     }
 
-    public EmbeddingTaskResponse setCreatedAt(LocalDateTime createdAt) {
+    public IndexTaskResponse setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
         return this;
     }
@@ -178,7 +204,7 @@ public class EmbeddingTaskResponse {
         return updatedAt;
     }
 
-    public EmbeddingTaskResponse setUpdatedAt(LocalDateTime updatedAt) {
+    public IndexTaskResponse setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
         return this;
     }
