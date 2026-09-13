@@ -2,8 +2,8 @@
 GET http://localhost:8080/api/health/ping
 
 
-### 2. Vectorize document
-POST http://localhost:8080/api/rag/documents/1/vectorize
+### 2. Build index for document
+POST http://localhost:8080/api/rag/documents/1/index
 
 
 ### 3. Search chunks in one knowledge space

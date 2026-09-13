@@ -19,16 +19,16 @@ Content-Type: application/json
 }
 
 
-### Week 7 - 提交异步向量化任务
-POST http://localhost:8080/api/rag/documents/1/vectorize-async
+### Week 7 - 手动触发文档索引任务（BUILD_INDEX）
+POST http://localhost:8080/api/rag/documents/1/index
 
 
-### Week 7 - 查询向量化任务状态
-GET http://localhost:8080/api/rag/embedding-tasks/1
+### Week 7 - 查询索引任务状态
+GET http://localhost:8080/api/rag/index-tasks/1
 
 
-### Week 7 - 查询文档所有向量化任务
-GET http://localhost:8080/api/rag/documents/1/embedding-tasks
+### Week 7 - 查询文档所有索引任务
+GET http://localhost:8080/api/rag/documents/1/index-tasks
 
 
 ### Week 7 - 检索 chunks
