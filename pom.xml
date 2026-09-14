@@ -112,6 +112,13 @@
 			<artifactId>jtokkit</artifactId>
 			<version>1.1.0</version>
 		</dependency>
+
+		<!-- 启动时加载项目根目录的 .env，供本地配置 OPENAI_API_KEY / OPENAI_BASE_URL 等 -->
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>4.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

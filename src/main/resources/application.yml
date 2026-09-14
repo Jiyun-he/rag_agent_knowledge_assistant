@@ -34,12 +34,13 @@ spring:
 
       chat:
         options:
-          model: gpt-4o-mini
+          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
           temperature: 0.3
 
       embedding:
         options:
-          model: text-embedding-3-small
+          # 换 embedding 模型会改变向量维度，需同步更换 Qdrant collection-name 或删除旧 collection
+          model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
 
     vectorstore:
       qdrant:
