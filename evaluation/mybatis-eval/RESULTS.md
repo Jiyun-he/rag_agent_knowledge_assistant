@@ -19,8 +19,10 @@ Ground truth（每题的期望 chunkId）由人工标注，两套切分分别标
 
 | 策略 | 长度参数 | 重叠 | 产出 chunk 数 |
 |---|---|---|---:|
-| `FIXED_SIZE` | `max-size=500` 字符（硬上限） | 80 | 298 |
-| `STRUCTURE_AWARE` | `target-size=800` / `hard-limit=1200` 字符 | 150 | 353 |
+| `FIXED_SIZE` | `max-size=500` 字符（硬上限） | 80 字符 | 298 |
+| `STRUCTURE_AWARE` | `target-size=800` / `hard-limit=1200` token | 150 token | 353 |
+
+> 两种策略的计数单位不同：`FIXED_SIZE` 按**字符**计数（`String.length()`），`STRUCTURE_AWARE` 按 **token** 计数（jtokkit，`cl100k_base` 编码，与 `text-embedding-3-small` 的切词一致）。800 与 500 不可直接按数值比较。本语料实测约 **1 个汉字 ≈ 1 个 token**（32,332 个汉字 → 31,604 token，`cl100k_base`），故两者量级接近。
 
 结构感知切分按 Markdown AST 的标题、段落、代码块、表格边界切分，并在每个 chunk 开头带上完整的标题路径（如 `# 配置` + `## 属性（properties）`）。
 
@@ -69,7 +71,7 @@ Ground truth（每题的期望 chunkId）由人工标注，两套切分分别标
 
 **向量检索是更强的单一基线。** VECTOR_ONLY 在两种切分下的 Recall@K 都高于 KEYWORD_ONLY（+0.055 / +0.099）。这与语料性质有关：26 题中多数是语义型提问，而关键词检索依赖字面匹配，只在类名、属性名这类精确查询上有优势。
 
-**关键词检索的优势在延迟，且差距极大。** KEYWORD_ONLY 平均 24–74 ms，比向量检索快 15–43 倍，比开启重排的 HYBRID_RERANK（2373 倍）快三个数量级。对延迟敏感、且查询含精确术语的场景，它是合算的选择。
+**关键词检索的优势在延迟，且差距极大。** KEYWORD_ONLY 平均 24–74 ms，比向量检索快 15–43 倍，比开启重排的 HYBRID_RERANK（2383 倍）快三个数量级。对延迟敏感、且查询含精确术语的场景，它是合算的选择。
 
 **HYBRID 融合的收益不稳定。** 定长切分下 HYBRID 的 Recall（0.7917）反而低于 VECTOR_ONLY（0.8045）；结构切分下则略高（0.8349 vs 0.8301）。它的主要贡献在排序：两种切分下 MRR 都优于 VECTOR_ONLY。这说明等权 RRF 融合能改善名次质量，但不必然提升召回覆盖。
 
