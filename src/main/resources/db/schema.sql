@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS kb_document (
                                            id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary key ID',
                                            space_id BIGINT NOT NULL COMMENT 'Knowledge space ID',
                                            title VARCHAR(255) NOT NULL COMMENT 'Document title',
-    content TEXT NOT NULL COMMENT 'Document content',
+    content MEDIUMTEXT NOT NULL COMMENT 'Document content',
     source_type VARCHAR(64) NOT NULL DEFAULT 'MANUAL' COMMENT 'Source type',
     source_uri VARCHAR(512) DEFAULT NULL COMMENT 'Source URI',
     status TINYINT NOT NULL DEFAULT 1 COMMENT 'Status: 1 active, 0 deleted',
