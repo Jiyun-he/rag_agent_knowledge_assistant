@@ -27,6 +27,9 @@ jobs:
       - name: Check repository style
         run: python3 scripts/quality/check_style.py
 
+      - name: Test quality scripts
+        run: python3 -m unittest discover --start-directory scripts/quality/tests
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:

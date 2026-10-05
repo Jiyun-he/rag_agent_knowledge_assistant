@@ -22,18 +22,57 @@ HEADER_PATTERN = re.compile(
 def revision_from_event() -> str:
     event_path = os.getenv("GITHUB_EVENT_PATH")
     if not event_path:
-        return "HEAD"
+        return "HEAD^!"
 
     event = json.loads(Path(event_path).read_text(encoding="utf-8"))
+    return revision_from_event_data(event)
+
+
+def revision_from_event_data(event: dict[str, object]) -> str:
     pull_request = event.get("pull_request")
     if pull_request:
         return f"{pull_request['base']['sha']}..{pull_request['head']['sha']}"
 
     before = event.get("before")
     after = event.get("after") or os.getenv("GITHUB_SHA") or "HEAD"
-    if before and before != ZERO_SHA:
+    if (
+        before
+        and before != ZERO_SHA
+        and commit_is_available(before)
+        and is_ancestor(before, after)
+    ):
         return f"{before}..{after}"
+
+    # A new branch or rewritten history has no usable incremental base. Validate
+    # every commit reachable from the new tip instead of constructing an invalid
+    # before..after range.
     return after
+
+
+def commit_is_available(revision: str) -> bool:
+    result = subprocess.run(
+        ["git", "cat-file", "-e", f"{revision}^{{commit}}"],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def is_ancestor(ancestor: str, descendant: str) -> bool:
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def command_line_revision(revision: str) -> str:
+    return revision if ".." in revision else f"{revision}^!"
 
 
 def commit_subjects(revision: str) -> list[tuple[str, str]]:
@@ -65,8 +104,11 @@ def validation_error(subject: str) -> str | None:
 
 
 def main() -> int:
-    requested_revision = sys.argv[1] if len(sys.argv) > 1 else revision_from_event()
-    revision = requested_revision if ".." in requested_revision else f"{requested_revision}^!"
+    revision = (
+        command_line_revision(sys.argv[1])
+        if len(sys.argv) > 1
+        else revision_from_event()
+    )
     commits = commit_subjects(revision)
     failures = [
         (commit_hash, subject, error)

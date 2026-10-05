@@ -15,7 +15,8 @@
 scripts/
 ├── quality/
 │   ├── check_style.py              Java / Python 基础风格检查
-│   └── check_commit_messages.py    Conventional Commits 检查
+│   ├── check_commit_messages.py    Conventional Commits 检查
+│   └── tests/                      CI 提交范围选择的 unittest 测试
 ├── mybatis_docs/
 │   ├── build_dataset.py     统一命令行入口（fetch → process → validate）
 │   ├── fetch_source.py      下载官方页面，记录 SHA-256 与状态码
