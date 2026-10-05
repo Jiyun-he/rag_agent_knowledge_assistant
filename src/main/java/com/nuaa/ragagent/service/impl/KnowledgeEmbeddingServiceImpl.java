@@ -93,7 +93,8 @@ public class KnowledgeEmbeddingServiceImpl implements KnowledgeEmbeddingService 
                                          KbChunkMapper kbChunkMapper,
                                          VectorStore vectorStore,
                                          KeywordIndexService keywordIndexService,
-                                         @Value("${spring.ai.vectorstore.qdrant.collection-name}") String collectionName,
+                                         @Value("${spring.ai.vectorstore.qdrant.collection-name}")
+                                         String collectionName,
                                          @Value("${rag.retrieval.vector-max-top-k:50}") int maxTopK) {
         this.kbSpaceMapper = kbSpaceMapper;
         this.kbDocumentMapper = kbDocumentMapper;

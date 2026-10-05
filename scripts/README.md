@@ -13,6 +13,9 @@
 
 ```text
 scripts/
+├── quality/
+│   ├── check_style.py              Java / Python 基础风格检查
+│   └── check_commit_messages.py    Conventional Commits 检查
 ├── mybatis_docs/
 │   ├── build_dataset.py     统一命令行入口（fetch → process → validate）
 │   ├── fetch_source.py      下载官方页面，记录 SHA-256 与状态码
@@ -81,3 +84,12 @@ python -m pytest scripts/mysql_docs/tests/
 ```
 
 测试使用本地 HTML fixture，不依赖网络。
+
+## 仓库风格检查
+
+```bash
+python scripts/quality/check_style.py
+python scripts/quality/check_commit_messages.py HEAD
+```
+
+风格脚本检查 Java 与 Python 源码的缩进、行尾空白、文件末尾换行、120 字符行宽和 Java 通配符 import。提交信息脚本检查 Conventional Commits 格式；CI 只校验本次 push 或 pull request 中的新增提交。

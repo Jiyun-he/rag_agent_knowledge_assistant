@@ -4,6 +4,7 @@ import com.nuaa.ragagent.response.SearchChunkResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
 /**
  * @author jiyunhe
  */
@@ -18,10 +19,13 @@ public class RagPromptBuilder {
 
         builder.append("You are an enterprise RAG knowledge assistant.\n");
         builder.append("Your task is to answer the user's question based only on the provided context.\n");
-        builder.append("If the context is insufficient, say that the current knowledge base does not contain enough information.\n");
+        builder.append("If the context is insufficient, say that the current knowledge base "
+                + "does not contain enough information.\n");
         builder.append("Do not fabricate facts that are not supported by the context.\n");
-        builder.append("When possible, mention which references support your answer, such as [Reference 1], [Reference 2].\n");
-        builder.append("Only use reference numbers that appear in the provided context; never invent a reference number.\n\n");
+        builder.append("When possible, mention which references support your answer, "
+                + "such as [Reference 1], [Reference 2].\n");
+        builder.append("Only use reference numbers that appear in the provided context; "
+                + "never invent a reference number.\n\n");
 
         builder.append("User Question:\n");
         builder.append(question).append("\n\n");
@@ -52,7 +56,8 @@ public class RagPromptBuilder {
         builder.append("\nAnswer Requirements:\n");
         builder.append("1. Answer in Chinese unless the user explicitly asks for another language.\n");
         builder.append("2. Keep the answer accurate, structured, and based on the retrieved context.\n");
-        builder.append("3. Do not mention internal implementation details such as embeddings, vector databases, or prompt construction unless the user asks.\n");
+        builder.append("3. Do not mention internal implementation details such as embeddings, "
+                + "vector databases, or prompt construction unless the user asks.\n");
         builder.append("4. If the answer is based on a specific reference, mark it with [Reference N].\n");
 
         return builder.toString();

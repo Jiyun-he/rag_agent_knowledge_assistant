@@ -10,6 +10,7 @@ import com.nuaa.ragagent.util.Chunker;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>使用 fake embedding，因此只影响向量质量，不影响分块边界；测试结束物理清理数据。</p>
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(TestAiConfiguration.class)

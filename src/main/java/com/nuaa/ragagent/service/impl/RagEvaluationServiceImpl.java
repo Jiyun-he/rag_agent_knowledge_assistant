@@ -499,7 +499,8 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setRetrievalMode(run.getRetrievalMode())
                 .setTopK(run.getTopK())
                 .setCandidateK(run.getCandidateK())
-                .setEnableAnswerGeneration(run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
+                .setEnableAnswerGeneration(
+                        run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
                 .setStatus(run.getStatus())
                 .setTotalCaseCount(run.getTotalCaseCount())
                 .setSuccessCaseCount(run.getSuccessCaseCount())
@@ -919,7 +920,8 @@ public class RagEvaluationServiceImpl implements RagEvaluationService {
                 .setRetrievalMode(run.getRetrievalMode())
                 .setTopK(run.getTopK())
                 .setCandidateK(run.getCandidateK())
-                .setEnableAnswerGeneration(run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
+                .setEnableAnswerGeneration(
+                        run.getEnableAnswerGeneration() != null && run.getEnableAnswerGeneration() == 1)
                 .setStatus(run.getStatus())
                 .setTotalCaseCount(run.getTotalCaseCount())
                 .setSuccessCaseCount(run.getSuccessCaseCount())

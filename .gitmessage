@@ -1,0 +1,10 @@
+# <type>(<scope>): <summary>
+#
+# Use English, imperative mood, lower-case start, no trailing period.
+# Keep the subject within 72 characters.
+#
+# Types: feat, fix, refactor, perf, test, docs, build, ci, chore, revert
+# Common scopes: api, chunk, dataset, eval, index, retrieval, docs, repo
+#
+# Add a body when the motivation or trade-off is not obvious.
+# Add "BREAKING CHANGE: ..." in the footer for incompatible changes.

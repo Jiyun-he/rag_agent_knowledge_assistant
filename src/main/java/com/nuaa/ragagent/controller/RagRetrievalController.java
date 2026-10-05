@@ -4,10 +4,13 @@ import com.nuaa.ragagent.common.ApiResponse;
 import com.nuaa.ragagent.request.SearchChunksRequest;
 import com.nuaa.ragagent.response.SearchChunkResponse;
 import com.nuaa.ragagent.service.RagRetrievalService;
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 /**
  * @author jiyunhe
  */
@@ -15,18 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rag")
 public class RagRetrievalController {
-
-//    private final KnowledgeEmbeddingService knowledgeEmbeddingService;
-//
-//    public RagRetrievalController(KnowledgeEmbeddingService knowledgeEmbeddingService) {
-//        this.knowledgeEmbeddingService = knowledgeEmbeddingService;
-//    }
-//
-//    @PostMapping("/search")
-//    public ApiResponse<List<SearchChunkResponse>> searchChunks(@Valid @RequestBody SearchChunksRequest request) {
-//        List<SearchChunkResponse> response = knowledgeEmbeddingService.searchChunks(request);
-//        return ApiResponse.success(response);
-//    }
 
     private final RagRetrievalService ragRetrievalService;
 

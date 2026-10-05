@@ -4,9 +4,14 @@ import com.nuaa.ragagent.common.ApiResponse;
 import com.nuaa.ragagent.enums.TaskType;
 import com.nuaa.ragagent.response.IndexTaskResponse;
 import com.nuaa.ragagent.service.IndexTaskService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 /**
  * 持久化异步索引任务接口。
  *

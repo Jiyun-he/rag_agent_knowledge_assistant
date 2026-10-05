@@ -34,7 +34,9 @@ class CodeBlockStatsTest {
 
     // 分桶边界（token 数）
     private static final int[] BUCKET_BOUNDS = {100, 200, 300, 500, 800, 1200, Integer.MAX_VALUE};
-    private static final String[] BUCKET_LABELS = {"0-100", "100-200", "200-300", "300-500", "500-800", "800-1200", "1200+"};
+    private static final String[] BUCKET_LABELS = {
+            "0-100", "100-200", "200-300", "300-500", "500-800", "800-1200", "1200+"
+    };
 
     @Test
     void collectCodeBlockTokenDistribution() throws IOException {

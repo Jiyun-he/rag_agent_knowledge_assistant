@@ -28,6 +28,12 @@ docker compose up -d
 
 敏感配置通过环境变量注入。仓库采用 `spring-dotenv`（`me.paulschwarz:spring-dotenv`），应用启动时会自动加载根目录的 `.env` 文件：
 
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell 可使用 `Copy-Item .env.example .env`。示例文件已列出当前支持的全部环境变量：
+
 ```dotenv
 # OpenAI 兼容服务的 API Key（必填）
 OPENAI_API_KEY=your_api_key_here
@@ -42,7 +48,7 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 
 `OPENAI_BASE_URL` 可指向官方 OpenAI，也可指向兼容 OpenAI 接口格式的第三方服务（如 DashScope、SiliconFlow）或本地推理服务（如 vLLM）。
 
-> `.env` 已在 `.gitignore` 中排除，不会进入版本库。
+> `.env` 已在 `.gitignore` 中排除，不会进入版本库；请勿把真实密钥写入 `.env.example`。
 >
 > 更换 embedding 模型会改变向量维度，必须同步更换 Qdrant `collection-name` 或删除旧 collection。
 

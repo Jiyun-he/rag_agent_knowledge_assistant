@@ -42,7 +42,7 @@ _INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 
 
 def _non_code_text(text: str) -> str:
-    """\u53bb\u6389\u56f4\u680f\u4ee3\u7801\u5757\u4e0e\u884c\u5185\u4ee3\u7801\u540e\u5269\u4f59\u6587\u672c\uff0c\u7528\u4e8e\u68c0\u67e5\u672f\u8bed\u662f\u5426\u6b8b\u7559\u4e8e\u975e\u4ee3\u7801\u6587\u672c\u3002"""
+    """去掉围栏代码块与行内代码后的剩余文本，用于检查术语是否残留在非代码文本。"""
     t = _CODE_BLOCK_RE.sub(" ", text)
     t = _INLINE_CODE_RE.sub(" ", t)
     return t
@@ -250,7 +250,10 @@ def _console_summary(report: dict) -> str:
         "=== 数据质量检查摘要 ===",
         f"数据集: {report.get('datasetName')} {report.get('datasetVersion')}",
         f"文档总数: {report['totalDocuments']}",
-        f"通过: {report['passedDocuments']}  必选失败: {report['failedMandatory']}  可选失败: {report['failedOptional']}  警告: {report['warningCount']}",
+        (
+            f"通过: {report['passedDocuments']}  必选失败: {report['failedMandatory']}  "
+            f"可选失败: {report['failedOptional']}  警告: {report['warningCount']}"
+        ),
         f"总体: {'PASS' if report['overallPass'] else 'FAIL'}",
     ]
     for r in report["documents"]:

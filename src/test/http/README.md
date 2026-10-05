@@ -12,7 +12,7 @@
 
 | 文件 | 覆盖内容 |
 | --- | --- |
-| `hybridSeach.http` | 四种检索模式各一次（`VECTOR_ONLY` / `KEYWORD_ONLY` / `HYBRID` / `HYBRID_RERANK`），外加一次使用 `HYBRID_RERANK` 的 ask |
+| `hybrid-search.http` | 四种检索模式各一次（`VECTOR_ONLY` / `KEYWORD_ONLY` / `HYBRID` / `HYBRID_RERANK`），外加一次使用 `HYBRID_RERANK` 的 ask |
 | `eval.http` | 创建评测集 → 添加评测 case → 查询 case → 启动 `VECTOR_ONLY` / `HYBRID_RERANK` 评测 → 查询 run 汇总 → 查询每个 case 的结果 → 对比多个 run |
 | `week7.http` | 较完整的端到端链路：创建空间、创建文档、触发索引任务、查询任务、检索、`/api/rag/ask`（有匹配上下文 / 无明显匹配）、以及缺少 `spaceId`、空问题两类参数校验 |
 | `week6.http` | 持久化索引任务：手动触发 `BUILD_INDEX`、按 taskId 查询、查询文档的任务列表、重试 `FAILED` 任务 |
@@ -24,8 +24,8 @@
 
 ## 关于 `week*.http`
 
-`week2` – `week7` 按开发周次命名，是课程/迭代期间逐步补充的历史脚本，保留用于回顾当时的接口形态。它们与较新的 `hybridSeach.http`、`eval.http` 存在部分重叠。
+`week2` – `week7` 按开发周次命名，是课程/迭代期间逐步补充的历史脚本，保留用于回顾当时的接口形态。它们与较新的 `hybrid-search.http`、`eval.http` 存在部分重叠。
 
 **需要完整的、按顺序执行的端到端流程时，优先使用 [`evaluation/eval-http/`](../../../evaluation/eval-http/)**：那是一套带编号步骤、明确标注占位 ID 来源的导入与评测脚本，覆盖从创建知识空间、导入 8 篇演示语料到构建评测集、对比四种检索模式的完整链路。说明见 [`evaluation/README.md`](../../../evaluation/README.md)。
 
-单元测试与端到端测试见根 [README](../../../README.md#测试)。
+单元测试与端到端测试见根 [README](../../../README.md#测试策略)。

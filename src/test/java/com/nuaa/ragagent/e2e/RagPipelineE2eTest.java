@@ -20,6 +20,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -50,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>前置条件：docker-compose 中的 mysql(3306)、qdrant(6334)、elasticsearch(9200)、
  * reranker(8081) 均在运行。</p>
  */
+@Tag("integration")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import(TestAiConfiguration.class)
@@ -358,13 +360,29 @@ class RagPipelineE2eTest {
                 // ES 不可用时不影响数据库清理
             }
         }
-        jdbcTemplate.update("DELETE FROM eval_case_result WHERE run_id IN (SELECT id FROM eval_run WHERE dataset_id IN (SELECT id FROM eval_dataset WHERE space_id = ?))", spaceId);
-        jdbcTemplate.update("DELETE FROM eval_run WHERE dataset_id IN (SELECT id FROM eval_dataset WHERE space_id = ?)", spaceId);
-        jdbcTemplate.update("DELETE FROM eval_case WHERE dataset_id IN (SELECT id FROM eval_dataset WHERE space_id = ?)", spaceId);
+        jdbcTemplate.update(
+                "DELETE FROM eval_case_result WHERE run_id IN "
+                        + "(SELECT id FROM eval_run WHERE dataset_id IN "
+                        + "(SELECT id FROM eval_dataset WHERE space_id = ?))",
+                spaceId);
+        jdbcTemplate.update(
+                "DELETE FROM eval_run WHERE dataset_id IN "
+                        + "(SELECT id FROM eval_dataset WHERE space_id = ?)",
+                spaceId);
+        jdbcTemplate.update(
+                "DELETE FROM eval_case WHERE dataset_id IN "
+                        + "(SELECT id FROM eval_dataset WHERE space_id = ?)",
+                spaceId);
         jdbcTemplate.update("DELETE FROM eval_dataset WHERE space_id = ?", spaceId);
         jdbcTemplate.update("DELETE FROM kb_index_task WHERE space_id = ?", spaceId);
-        jdbcTemplate.update("DELETE FROM qa_reference WHERE session_id IN (SELECT id FROM qa_session WHERE space_id = ?)", spaceId);
-        jdbcTemplate.update("DELETE FROM qa_message WHERE session_id IN (SELECT id FROM qa_session WHERE space_id = ?)", spaceId);
+        jdbcTemplate.update(
+                "DELETE FROM qa_reference WHERE session_id IN "
+                        + "(SELECT id FROM qa_session WHERE space_id = ?)",
+                spaceId);
+        jdbcTemplate.update(
+                "DELETE FROM qa_message WHERE session_id IN "
+                        + "(SELECT id FROM qa_session WHERE space_id = ?)",
+                spaceId);
         jdbcTemplate.update("DELETE FROM qa_session WHERE space_id = ?", spaceId);
         jdbcTemplate.update("DELETE FROM kb_chunk WHERE space_id = ?", spaceId);
         jdbcTemplate.update("DELETE FROM kb_document WHERE space_id = ?", spaceId);
@@ -380,7 +398,8 @@ class RagPipelineE2eTest {
 
     private <T> ApiResponse<T> post(String path, Object body, ParameterizedTypeReference<ApiResponse<T>> typeRef) {
         HttpEntity<Object> request = new HttpEntity<>(body);
-        ResponseEntity<ApiResponse<T>> entity = restTemplate.exchange(baseUrl + path, HttpMethod.POST, request, typeRef);
+        ResponseEntity<ApiResponse<T>> entity =
+                restTemplate.exchange(baseUrl + path, HttpMethod.POST, request, typeRef);
         return entity.getBody();
     }
 

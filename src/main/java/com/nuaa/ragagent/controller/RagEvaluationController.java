@@ -1,19 +1,25 @@
 package com.nuaa.ragagent.controller;
 
 import com.nuaa.ragagent.common.ApiResponse;
+import com.nuaa.ragagent.request.CompareEvalRunsRequest;
 import com.nuaa.ragagent.request.CreateEvalCaseRequest;
 import com.nuaa.ragagent.request.CreateEvalDatasetRequest;
 import com.nuaa.ragagent.request.StartEvalRunRequest;
 import com.nuaa.ragagent.response.EvalCaseResponse;
 import com.nuaa.ragagent.response.EvalCaseResultResponse;
 import com.nuaa.ragagent.response.EvalDatasetResponse;
+import com.nuaa.ragagent.response.EvalRunCompareResponse;
 import com.nuaa.ragagent.response.EvalRunResponse;
 import com.nuaa.ragagent.service.RagEvaluationService;
-import org.springframework.web.bind.annotation.*;
-import com.nuaa.ragagent.request.CompareEvalRunsRequest;
-import com.nuaa.ragagent.response.EvalRunCompareResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 /**
  * @author jiyunhe
  */
